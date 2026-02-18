@@ -49,16 +49,8 @@
     #cardTarget { width: 100%; }
     .stat-sep { color: #bbb; margin: 0 8px; }
 
-    /* ═══ PASS/FAIL — fully positioned via JS VERDICT_POS ═══ */
-    .verdict-badge {
-      position: absolute;
-      border: none; border-radius: 0;
-      text-transform: uppercase;
-      z-index: 3;
-      /* all geometry set by applyVerdictPos() */
-    }
-    .verdict-badge.pass { background: #dcfce7; color: #19763e; }
-    .verdict-badge.fail { background: #fee2e2; color: #b02828; }
+    /* ═══ PASS/FAIL — colours and geometry both from JS config ═══ */
+    .verdict-badge { position: absolute; border: none; border-radius: 0; text-transform: uppercase; z-index: 3; }
 
     /* ═══ DONUT ═══ */
     #donutWrap { position: absolute; z-index: 10; }
@@ -67,28 +59,37 @@
     /* ═══ INFO PANEL ═══ */
     .info-col { position: absolute; display: flex; flex-direction: column; justify-content: center; gap: 10px; min-width: 0; z-index: 2; }
 
-    /* ═══ TABLES ═══ */
-    .data-box { border: 1.5px solid #d1d5db; border-radius: 2px; overflow: hidden; }
+    /* ═══ TABLES — structural skeleton only; colours/borders from TABLE_STYLE ═══ */
+    .data-box   { overflow: hidden; }
     .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .data-table thead th { background: #f3f4f6; border-bottom: 1.5px solid #d1d5db; padding: 6px 10px; white-space: nowrap; }
-    .data-table tbody td { padding: 5px 10px; border-bottom: 1px solid #e5e7eb; }
-    .data-table tbody tr:last-child td { border-bottom: none; }
 
-    /* Sources columns */
+    /* ── Column width control (sources table) ── */
+    .col-sw-col {
+      width: 40px;          /* hard clamp for swatch */
+    }
+
+    .col-name-col {
+      width: auto;          /* takes remaining space */
+    }
+
+    .col-data-col {
+      width: 220px;         /* fixed numeric column */
+    }
+
+    /* Columns */
     .col-sw   { vertical-align: middle; text-align: left; }
     .col-name { vertical-align: middle; overflow: visible; white-space: normal; word-break: normal; overflow-wrap: normal; }
     .col-data { vertical-align: middle; }
 
-    .swatch  { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+    .swatch   { display: inline-block; vertical-align: middle; flex-shrink: 0; }
     .pop-name { vertical-align: middle; hyphens: none; line-height: 1.35; }
 
-    /* Z-score tiers */
+    /* Z-score colour tiers */
     .z-good { color: #16a34a; }
     .z-mid  { color: #ca8a04; }
     .z-bad  { color: #dc2626; }
 
     /* Outgroups */
-    .outgroups-table thead th { text-align: center !important; }
     .outgroups-td { white-space: normal; word-break: break-word; overflow-wrap: break-word; }
 
     /* Watermark */
@@ -143,12 +144,17 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
   <div class="info-col" id="infoCol">
     <div class="data-box" id="sourcesBox">
       <table class="data-table" id="sourcesTable">
+        <colgroup>
+          <col class="col-sw-col">
+          <col class="col-name-col">
+          <col class="col-data-col">
+        </colgroup>
         <thead id="sourcesHead"></thead>
         <tbody id="sourcesBody"></tbody>
       </table>
     </div>
     <div class="data-box" id="outgroupsBox" style="display:none;">
-      <table class="data-table outgroups-table">
+      <table class="data-table outgroups-table" id="outgroupsTable">
         <thead><tr><th id="hdrOutgroups"></th></tr></thead>
         <tbody><tr><td class="outgroups-td" id="outgroupsTd"></td></tr></tbody>
       </table>
@@ -173,39 +179,75 @@ const LAYOUT = {
 };
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
-   ║  VERDICT BADGE POSITION & SIZE                                           ║
+   ║  VERDICT BADGE — position, size, colours                                ║
    ║                                                                          ║
-   ║  anchorX / anchorY  — position of badge anchor as % of card W / H       ║
-   ║  anchor             — which corner of the badge sits at anchorX/Y:       ║
-   ║                       'top-right' | 'top-left' | 'top-center'           ║
-   ║                       'bottom-right' | 'bottom-left' | 'bottom-center'  ║
-   ║  minWidth           — minimum badge width in px (0 = auto)              ║
-   ║  minHeight          — minimum badge height in px (0 = auto)             ║
-   ║  paddingV / paddingH — inner padding in px                               ║
-   ║  textAlign          — text alignment within badge: 'left'|'center'|'right'║
+   ║  anchorX / anchorY  position of badge anchor as % of card W / H         ║
+   ║  anchor             which corner sits at anchorX/Y:                     ║
+   ║                     'top-right' 'top-left' 'top-center'                ║
+   ║                     'bottom-right' 'bottom-left' 'bottom-center'       ║
+   ║  minWidth / minHeight  minimum badge size in px  (0 = auto)            ║
+   ║  paddingV / paddingH   inner padding px                                 ║
+   ║  textAlign          text alignment inside badge                         ║
+   ║                                                                          ║
+   ║  COLOURS (replaces the old CSS .pass / .fail rules):                    ║
+   ║  passBg / passText  background + text colour when PASS                  ║
+   ║  failBg / failText  background + text colour when FAIL                  ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 const VERDICT_POS = {
-  anchorX:    98,           /* % card W — badge anchor X       */
-  anchorY:    3,            /* % card H — badge anchor Y       */
-  anchor:     'top-right',  /* which corner of badge is at X/Y */
-  minWidth:   0,            /* px, 0 = auto                    */
-  minHeight:  0,            /* px, 0 = auto                    */
-  paddingV:   8,            /* px inner vertical padding       */
-  paddingH:   8,            /* px inner horizontal padding     */
-  textAlign:  'center',     /* text alignment within badge     */
+  anchorX:    98,
+  anchorY:    3,
+  anchor:     'top-right',
+  minWidth:   0,
+  minHeight:  0,
+  paddingV:   8,
+  paddingH:   8,
+  textAlign:  'center',
+
+  /* ── badge colours — edit freely ── */
+  passBg:     '#dcfce7',
+  passText:   '#19763e',
+  failBg:     '#fee2e2',
+  failText:   '#b02828',
+};
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  TABLE STYLE  —  borders, backgrounds for both tables                   ║
+   ║                                                                          ║
+   ║  boxBorderWidth      outer box border thickness  e.g. '1.5px'           ║
+   ║  boxBorderColor      outer box border colour                             ║
+   ║  boxBorderRadius     outer box corner radius                             ║
+   ║                                                                          ║
+   ║  headerBg            header row background colour                       ║
+   ║  headerBorderWidth   line beneath header row                             ║
+   ║  headerBorderColor   colour of that line                                 ║
+   ║                                                                          ║
+   ║  rowBorderWidth      separator between body rows                        ║
+   ║  rowBorderColor      colour of row separators                           ║
+   ║                                                                          ║
+   ║  cellBg              default body cell background  ('transparent' = off)║
+   ║  evenRowBg           override bg for even-indexed rows (0-based)        ║
+   ║  oddRowBg            override bg for odd-indexed rows                   ║
+   ║    set evenRowBg / oddRowBg to 'transparent' to disable zebra striping  ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const TABLE_STYLE = {
+  boxBorderWidth:    '1.5px',
+  boxBorderColor:    '#d1d5db',
+  boxBorderRadius:   '2px',
+
+  headerBg:          '#f3f4f6',
+  headerBorderWidth: '1.5px',
+  headerBorderColor: '#d1d5db',
+
+  rowBorderWidth:    '1px',
+  rowBorderColor:    '#e5e7eb',
+
+  cellBg:            'transparent',  /* base cell bg */
+  evenRowBg:         'transparent',  /* even rows — set a colour for zebra */
+  oddRowBg:          'transparent',  /* odd rows  */
 };
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  DONUT CONFIG                                                            ║
-   ╠══════════════════════════════════════════════════════════════════════════╣
-   ║  donutCutout      '0%' = solid pie  '90%' = thin ring                   ║
-   ║  donutBorderW     slice border width px                                  ║
-   ║  donutBorderC     slice border colour                                    ║
-   ║  donutHoverOff    px expansion on hover                                  ║
-   ║  donutClockwise   true = CW  │  false = anti-clockwise                  ║
-   ║  donutStartAngle  degrees: 90=6-o'clock -90=12 0=3 180=9               ║
-   ║  zGoodMin         Z ≥ this → green                                      ║
-   ║  zMidMin          Z ≥ this → amber  (below → red)                      ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 const CFG = {
   donutCutout:      '65%',
@@ -222,28 +264,22 @@ const CFG = {
    ║  SWATCH                                                                  ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 const SWATCH = {
-  width:   '25px',
-  height:  '19px',
+  width:   '29px',
+  height:  '23px',
   radius:  '0px',
   border:  '1.8px solid #000',
 };
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
-   ║  TYPOGRAPHY  —  every text element on the output card                    ║
+   ║  TYPOGRAPHY  —  every text element on the output card                   ║
    ║                                                                          ║
-   ║  Keys available in every section:                                        ║
-   ║    font           CSS font-family string                                 ║
-   ║    fontSize       CSS font-size  (px / em / vw / clamp(…))              ║
-   ║    fontWeight     100–900                                                ║
-   ║    fontStyle      'normal' | 'italic' | 'oblique'                       ║
-   ║    color          any CSS colour                                         ║
-   ║    letterSpacing  e.g. '-0.02em'                                         ║
-   ║    lineHeight     e.g. '1.4'                                             ║
-   ║    align          'left' | 'center' | 'right'                           ║
+   ║  Keys in every section:                                                  ║
+   ║    font / fontSize / fontWeight / fontStyle / color                     ║
+   ║    letterSpacing / lineHeight / align                                   ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 const TYPOGRAPHY = {
 
-  /* ── Large population name heading ── */
+  /* ── Population name heading ── */
   target: {
     font:          'Roboto, sans-serif',
     fontSize:      'clamp(40px, 4.5vw, 60px)',
@@ -255,7 +291,7 @@ const TYPOGRAPHY = {
     align:         'center',
   },
 
-  /* ── χ² / p-value stat line ── */
+  /* ── χ² / p-value line ── */
   stat: {
     font:          'Cascadia Code, sans-serif',
     fontSize:      'clamp(18px, 2.0vw, 30px)',
@@ -268,24 +304,24 @@ const TYPOGRAPHY = {
     marginTop:     '2px',
   },
 
-  /* ── Card header padding (controls gap above content) ── */
+  /* ── Header area padding ── */
   headerPadding: {
     top:    '10px',
     sides:  '24px',
     bottom: '0px',
   },
 
-  /* ── PASS / FAIL text style (position controlled by VERDICT_POS above) ── */
+  /* ── PASS / FAIL text style (colours live in VERDICT_POS above) ── */
   verdict: {
-    font:          'Roboto, sans-serif',
-    fontSize:      'clamp(15px, 2.0vw, 23px)',
-    fontWeight:    600,
-    fontStyle:     'normal',
-    letterSpacing: '0.12em',
-    /* background & text colour live in .pass / .fail CSS classes */
+    font: 'Inter, sans-serif',
+    fontSize: 'clamp(14px, 1.9vw, 22px)',
+    fontWeight: 600,
+    fontStyle: 'normal',
+    letterSpacing: '0.14em',
   },
 
-  /* ── Sources table: single merged header ── */
+
+  /* ── Sources table: merged header ── */
   sourcesHeader: {
     font:          'Roboto, sans-serif',
     fontSize:      '12px',
@@ -302,7 +338,7 @@ const TYPOGRAPHY = {
   /* ── Source name cell ── */
   sourcesName: {
     font:          'Roboto, sans-serif',
-    fontSize:      '15px',
+    fontSize:      '17px',
     fontWeight:    500,
     fontStyle:     'normal',
     color:         '#111111',
@@ -311,10 +347,10 @@ const TYPOGRAPHY = {
     align:         'left',
   },
 
-  /* ── Coeff ± SE portion of data cell ── */
+  /* ── Coeff ± SE portion ── */
   sourcesCoeff: {
     font:          'Roboto, sans-serif',
-    fontSize:      '15px',
+    fontSize:      '17px',
     fontWeight:    500,
     fontStyle:     'normal',
     color:         '#111111',
@@ -322,25 +358,22 @@ const TYPOGRAPHY = {
     align:         'left',
   },
 
-  /* ── Z-score portion of data cell ──
-     zPrefix      text before the number inside the bracket
-     zSep         space between coeff block and the opening paren
-     zGap         CSS gap between "Z:" label and the number        */
+  /* ── Z-score portion ──
+     zPrefix      text before the number  e.g. 'Z: '
+     zSepPx       px gap between coeff block and opening paren  ← NEW
+     zGap         gap between "Z:" and the number (kept for compatibility)  */
   sourcesZ: {
     font:          'Roboto, sans-serif',
-    fontSize:      '13px',
+    fontSize:      '15px',
     fontWeight:    700,
     fontStyle:     'normal',
     letterSpacing: '0',
     zPrefix:       'Z:\u2009',   /* thin-space after colon */
-    zSep:          '  ',         /* gap before opening paren */
-    zGap:          '3px',
+    zSepPx:        8,            /* px gap between coeff value and (Z: …) bracket */
+    zGap:          '3px',        /* kept — no longer used in rendering but preserved */
   },
 
-  /* ── Colon separator between name and data ──
-     colonText    the actual text used as separator (default ': ')
-     colonFont    font for the colon — usually matches coeff font
-     colonColor   colour of the colon character                    */
+  /* ── Colon separator (": ") between name and data columns ── */
   sourcesColon: {
     colonText:   ': ',
     colonFont:   'Roboto, sans-serif',
@@ -349,14 +382,11 @@ const TYPOGRAPHY = {
 
   /* ── Per-row overrides ──────────────────────────────────────────────────
      { index: N, <prefixed key>: value }
-     name*   → nameFont  nameFontSize  nameFontWeight  nameFontStyle
-               nameColor  nameLetterSpacing  nameLineHeight  nameAlign
-     coeff*  → coeffFont  coeffFontSize  coeffFontWeight  coeffFontStyle
-               coeffColor  coeffLetterSpacing  coeffAlign
-     z*      → zFont  zFontSize  zFontWeight  zFontStyle  zLetterSpacing  zGap
-     Examples:
-       { index: 0, nameColor: '#e63946', nameFontWeight: 700 }
-       { index: 1, coeffColor: '#2563eb' }                                  */
+     name*   nameFont nameFontSize nameFontWeight nameFontStyle
+             nameColor nameLetterSpacing nameLineHeight nameAlign
+     coeff*  coeffFont coeffFontSize coeffFontWeight coeffFontStyle
+             coeffColor coeffLetterSpacing coeffAlign
+     z*      zFont zFontSize zFontWeight zFontStyle zLetterSpacing zGap      */
   sourcesRowOverrides: [
     // { index: 0, nameColor: '#e63946' },
   ],
@@ -398,9 +428,7 @@ const TYPOGRAPHY = {
   },
 };
 
-/* ══════════════════════════════════════════════════════════════════
-   COLOR PALETTES
-══════════════════════════════════════════════════════════════════ */
+/* ══ COLOR PALETTES ══ */
 const colorPalettes = [
   ["#4477aa","#ee6677","#228833","#ccbb44","#66ccee","#aa3377","#bbbbbb","#44bb99","#eedd88","#77aadd"],
   ["#e41a1c","#377eb8","#4daf4a","#984ea3","#ff7f00","#a65628","#f781bf","#999999","#66c2a5","#fc8d62"],
@@ -416,7 +444,7 @@ const colorPalettes = [
 
 let chartObj = null;
 
-/* ── Apply TYPOGRAPHY section to a DOM element ── */
+/* ── Apply TYPOGRAPHY section to element ── */
 function applyT(el, t) {
   if (!el || !t) return;
   if (t.font)          el.style.fontFamily    = t.font;
@@ -429,7 +457,15 @@ function applyT(el, t) {
   if (t.align)         el.style.textAlign     = t.align;
 }
 
-/* ── Apply LAYOUT to donut + info panel ── */
+/* ── Apply TABLE_STYLE to a .data-box + its table ── */
+function applyTableStyle(boxEl) {
+  if (!boxEl) return;
+  const ts = TABLE_STYLE;
+  boxEl.style.border       = `${ts.boxBorderWidth} solid ${ts.boxBorderColor}`;
+  boxEl.style.borderRadius = ts.boxBorderRadius;
+}
+
+/* ── Apply LAYOUT ── */
 function applyLayout() {
   const card = document.getElementById('card');
   const wrap = document.getElementById('donutWrap');
@@ -438,68 +474,54 @@ function applyLayout() {
   const d  = (LAYOUT.donutDiameter / 100) * cW;
   const cx = (LAYOUT.donutCenterX  / 100) * cW;
   const cy = (LAYOUT.donutCenterY  / 100) * cH;
-  wrap.style.width  = d + 'px';
-  wrap.style.height = d + 'px';
-  wrap.style.left   = (cx - d / 2) + 'px';
-  wrap.style.top    = (cy - d / 2) + 'px';
+  wrap.style.width  = d + 'px';  wrap.style.height = d + 'px';
+  wrap.style.left   = (cx - d / 2) + 'px';  wrap.style.top = (cy - d / 2) + 'px';
   info.style.left   = ((LAYOUT.panelLeft   / 100) * cW) + 'px';
   info.style.top    = ((LAYOUT.panelTop    / 100) * cH) + 'px';
   info.style.right  = ((LAYOUT.panelRight  / 100) * cW) + 'px';
   info.style.bottom = ((LAYOUT.panelBottom / 100) * cH) + 'px';
 }
 
-/* ── Apply VERDICT_POS to badge ──
-   Positions the badge by computing its px coordinates from % values,
-   then offsetting based on which corner of the badge is at anchorX/Y.
-   We use a two-pass: render offscreen to measure, then position.         */
-function applyVerdictPos(vb) {
+/* ── Apply VERDICT_POS to badge (2-pass: measure then position) ── */
+function applyVerdictPos(vb, pass) {
   const card = document.getElementById('card');
-  const cW   = card.offsetWidth, cH = card.offsetHeight;
-  const vp   = VERDICT_POS;
-  const vt   = TYPOGRAPHY.verdict;
+  const cW = card.offsetWidth, cH = card.offsetHeight;
+  const vp = VERDICT_POS, vt = TYPOGRAPHY.verdict;
 
-  /* Base style */
+  /* Typography */
   applyT(vb, vt);
-  vb.style.padding    = `${vp.paddingV}px ${vp.paddingH}px`;
-  vb.style.textAlign  = vp.textAlign;
+  /* Colours from VERDICT_POS (not CSS classes) */
+  vb.style.background = pass ? vp.passBg   : vp.failBg;
+  vb.style.color      = pass ? vp.passText : vp.failText;
+  /* Geometry */
+  vb.style.padding   = `${vp.paddingV}px ${vp.paddingH}px`;
+  vb.style.textAlign = vp.textAlign;
   if (vp.minWidth  > 0) vb.style.minWidth  = vp.minWidth  + 'px';
   if (vp.minHeight > 0) vb.style.minHeight = vp.minHeight + 'px';
 
-  /* Temporarily position off-screen to measure size */
+  /* Pass 1: measure */
   vb.style.visibility = 'hidden';
   vb.style.left = '0'; vb.style.top = '0';
   vb.style.right = ''; vb.style.bottom = '';
-
-  /* Read rendered dimensions */
   const bW = vb.offsetWidth, bH = vb.offsetHeight;
   vb.style.visibility = '';
 
-  /* Anchor point in px */
+  /* Anchor math */
   const ax = (vp.anchorX / 100) * cW;
   const ay = (vp.anchorY / 100) * cH;
-
-  /* Compute left/top from anchor corner */
-  let left, top;
-  const a = vp.anchor || 'top-right';
-  const hPart = a.includes('left')   ? 0
-              : a.includes('right')  ? 1
-              : a.includes('center') ? 0.5 : 1;
-  const vPart = a.includes('bottom') ? 1
-              : a.includes('center') && !a.includes('top') && !a.includes('bottom') ? 0.5
-              : 0;
-  left = ax - hPart * bW;
-  top  = ay - vPart * bH;
-
-  vb.style.left   = left + 'px';
-  vb.style.top    = top  + 'px';
+  const a  = vp.anchor || 'top-right';
+  const hP = a.includes('left') ? 0 : a.includes('right') ? 1 : 0.5;
+  const vP = a.includes('bottom') ? 1 : (a === 'center' ? 0.5 : 0);
+  vb.style.left   = (ax - hP * bW) + 'px';
+  vb.style.top    = (ay - vP * bH) + 'px';
   vb.style.right  = '';
   vb.style.bottom = '';
 }
 
-/* ── Soft-break long names at _ . - ── */
+/* ── Soft-break long names ── */
 function softBreak(s) { return s.replace(/([_.\-])/g, '$1<wbr>'); }
 
-/* ── Merge per-row override with typography defaults ── */
+/* ── Merge row override with defaults ── */
 function mergeRow(i) {
   const base = {
     nameFont:           TYPOGRAPHY.sourcesName.font,
@@ -530,7 +552,6 @@ function mergeRow(i) {
 
 function isRawFormat(t) { return /left pops\s*:/i.test(t) && /right pops\s*:/i.test(t); }
 
-/* ── Raw qpAdm log parser ── */
 function parseRaw(text) {
   const lines = text.split('\n');
   const li = lines.findIndex(l => /^\s*left pops\s*:/i.test(l));
@@ -543,7 +564,6 @@ function parseRaw(text) {
   }
   if (lp.length < 2) throw new Error('Need target + ≥1 source in left pops');
   const target = lp[0], sources = lp.slice(1);
-
   const ri = lines.findIndex(l => /^\s*right pops\s*:/i.test(l));
   const rp = [];
   if (ri >= 0) {
@@ -553,7 +573,6 @@ function parseRaw(text) {
       const m = l.match(/^(\S+)\s+\d+/); if (m) rp.push(m[1]);
     }
   }
-
   let pValue = NaN, chisq = NaN;
   const ci = lines.findIndex(l => /^\s*codimension\s+1\b/.test(l));
   if (ci >= 0) {
@@ -569,28 +588,21 @@ function parseRaw(text) {
     }
   }
   if (isNaN(pValue)) throw new Error('Could not parse p-value');
-
   const cl = lines.find(l => /best coefficients:/.test(l));
   if (!cl) throw new Error('"best coefficients:" not found');
   const coeffs = cl.replace('best coefficients:','').trim().split(/\s+/).map(Number).filter(v=>!isNaN(v));
   if (coeffs.length !== sources.length) throw new Error(`Coefficients (${coeffs.length}) ≠ sources (${sources.length})`);
-
   const sl = lines.find(l => /std\.\s*errors:/.test(l));
   if (!sl) throw new Error('"std. errors:" not found');
   const ses = sl.replace(/std\.\s*errors:/,'').trim().split(/\s+/).map(Number).filter(v=>!isNaN(v));
   if (ses.length !== sources.length) throw new Error(`SEs (${ses.length}) ≠ sources (${sources.length})`);
-
   const tot = coeffs.reduce((a,b)=>a+b,0);
-  return {
-    target, sources,
-    weights: coeffs.map(c=>(c/tot)*100),
-    sesPct:  ses.map(s=>s*100),
+  return { target, sources,
+    weights: coeffs.map(c=>(c/tot)*100), sesPct: ses.map(s=>s*100),
     zScores: coeffs.map((c,i)=>ses[i]>0?c/ses[i]:0),
-    pValue, chisq, outgroups: rp.join(', ')
-  };
+    pValue, chisq, outgroups: rp.join(', ') };
 }
 
-/* ── Summary format parser ── */
 function parseSummary(text) {
   const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
   const tl = lines.find(l=>l.startsWith('Target:'));
@@ -609,12 +621,7 @@ function parseSummary(text) {
     const l = lines[i];
     if (/^(P value:|chisq:|Rights:)/.test(l)) break;
     const m = l.match(/^(.+?)\s*-\s*([\d.]+)%\s*SE:\s*([\d.]+)%\s*Z:\s*([-\d.]+)/);
-    if (m) {
-      sources.push(m[1].trim());
-      weights.push(parseFloat(m[2]));
-      sesPct.push(parseFloat(m[3]));
-      zScores.push(parseFloat(m[4]));
-    }
+    if (m) { sources.push(m[1].trim()); weights.push(parseFloat(m[2])); sesPct.push(parseFloat(m[3])); zScores.push(parseFloat(m[4])); }
   }
   if (!sources.length) throw new Error('No populations found');
   const tot = weights.reduce((a,b)=>a+b,0);
@@ -639,9 +646,8 @@ function parseAndDraw() {
     const { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups } = parsed;
 
     /* ── Header padding ── */
-    const hp  = TYPOGRAPHY.headerPadding;
-    const hdr = document.getElementById('cardHeader');
-    hdr.style.padding = `${hp.top} ${hp.sides} ${hp.bottom} ${hp.sides}`;
+    const hp = TYPOGRAPHY.headerPadding;
+    document.getElementById('cardHeader').style.padding = `${hp.top} ${hp.sides} ${hp.bottom} ${hp.sides}`;
 
     /* ── Target ── */
     const tEl = document.getElementById('cardTarget');
@@ -655,18 +661,22 @@ function parseAndDraw() {
     applyT(slEl, TYPOGRAPHY.stat);
     slEl.style.marginTop = TYPOGRAPHY.stat.marginTop || '2px';
 
-    /* ── Show card first (needed for measurements) ── */
+    /* ── Show card (needed for measurements) ── */
     document.getElementById('card').style.display = 'block';
 
     /* ── Verdict badge ── */
     const pass = pValue >= 0.05;
     const vb   = document.getElementById('verdictBadge');
     vb.textContent = pass ? 'PASS' : 'FAIL';
-    vb.className   = 'verdict-badge ' + (pass ? 'pass' : 'fail');
-    applyVerdictPos(vb);
+    vb.className   = 'verdict-badge';   /* no .pass/.fail — colours set in JS */
+    applyVerdictPos(vb, pass);
 
     /* ── Layout ── */
     applyLayout();
+
+    /* ── Table styles ── */
+    applyTableStyle(document.getElementById('sourcesBox'));
+    applyTableStyle(document.getElementById('outgroupsBox'));
 
     /* ── Colors ── */
     const pidx   = parseInt(document.getElementById('paletteSelect').value);
@@ -687,7 +697,7 @@ function parseAndDraw() {
       }]},
       options: {
         responsive: true, cutout: CFG.donutCutout,
-        rotation:      CFG.donutStartAngle,
+        rotation: CFG.donutStartAngle,
         circumference: CFG.donutClockwise ? 360 : -360,
         layout: { padding: CFG.donutHoverOff },
         plugins: {
@@ -698,23 +708,26 @@ function parseAndDraw() {
       }
     });
 
-    /* ═══ SOURCES TABLE ═══
-       Header row:  [empty swatch th] [colspan=2 merged header]
-       Data rows:   [swatch]  [pop name]  [: coeff ± SE  (Z: z.zz)]
-    ═══ */
+    /* ══ SOURCES TABLE ══════════════════════════════════════════════════════
+       HEADER: single <th colspan="3"> spanning ALL columns (swatch+name+data)
+       so it is always centred over the full table width.
+       The swatch-column width is enforced by the first data row.
+       ═══════════════════════════════════════════════════════════════════════ */
+    const ts     = TABLE_STYLE;
     const sh     = TYPOGRAPHY.sourcesHeader;
     const swColW = (parseInt(SWATCH.width) + 16) + 'px';
 
+    /* Header: colspan=3, spans entire table — true visual centre */
     document.getElementById('sourcesHead').innerHTML = `
       <tr>
-        <th style="width:${swColW};background:#f3f4f6;border-bottom:1.5px solid #d1d5db;padding:5px 0 5px 10px;"></th>
-        <th colspan="2" style="
+        <th colspan="3" style="
           font-family:${sh.font};font-size:${sh.fontSize};
           font-weight:${sh.fontWeight};font-style:${sh.fontStyle||'normal'};
           color:${sh.color};letter-spacing:${sh.letterSpacing};
           line-height:${sh.lineHeight};text-align:${sh.align};
           text-transform:${sh.textTransform||'uppercase'};
-          background:#f3f4f6;border-bottom:1.5px solid #d1d5db;
+          background:${ts.headerBg};
+          border-bottom:${ts.headerBorderWidth} solid ${ts.headerBorderColor};
           padding:5px 10px;white-space:nowrap;
         ">${sh.text}</th>
       </tr>`;
@@ -725,46 +738,55 @@ function parseAndDraw() {
     let srcHTML = '';
 
     sources.forEach((pop, i) => {
-      const rs  = mergeRow(i);
-      const z   = zScores[i];
-      const zCl = zClass(z);
+      const rs    = mergeRow(i);
+      const z     = zScores[i];
+      const zCl   = zClass(z);
+      const rowBg = (i % 2 === 0) ? ts.evenRowBg : ts.oddRowBg;
+      const sepBorder = `border-bottom:${ts.rowBorderWidth} solid ${ts.rowBorderColor};`;
 
-      /*  Z block inside parens: (Z: 12.41)  */
-      const zBlock = `<span class="${zCl}" style="
-            font-family:${rs.zFont};font-size:${rs.zFontSize};
-            font-weight:${rs.zFontWeight};font-style:${rs.zFontStyle};
-            letter-spacing:${rs.zLetterSpacing};white-space:nowrap;
-          ">(${zT.zPrefix}<span style="
-            display:inline-grid;grid-template-columns:auto auto;
-            gap:${rs.zGap};align-items:center;
-          "><span style="white-space:nowrap;"></span
-          ><span style="min-width:3.5ch;text-align:right;white-space:nowrap;">${z.toFixed(2)}</span
-          ></span>)</span>`;
+      /* ── Z block: (Z: 12.41) — simple inline, no grid hack ──
+         Plain inline rendering eliminates the vertical-shift artefact.  */
+      const zHtml = `<span class="${zCl}" style="
+          font-family:${rs.zFont};font-size:${rs.zFontSize};
+          font-weight:${rs.zFontWeight};font-style:${rs.zFontStyle};
+          letter-spacing:${rs.zLetterSpacing};
+          white-space:nowrap;vertical-align:baseline;
+        ">(${zT.zPrefix}${z.toFixed(2)})</span>`;
 
-      /*  Colon separator  */
-      const colonHtml = `<span style="
-            font-family:${sc.colonFont};
-            color:${sc.colonColor};
-            white-space:pre;
-          ">${sc.colonText}</span>`;
+      /* ── zSepPx: controlled gap between coeff value and Z bracket ── */
+      const zSepHtml = `<span style="display:inline-block;width:${zT.zSepPx}px;"></span>`;
 
-      /*  Full data cell: ": coeff ± se   (Z: 12.41)"  */
-      const dataHtml = `${colonHtml}<span style="
-            font-family:${rs.coeffFont};font-size:${rs.coeffFontSize};
-            font-weight:${rs.coeffFontWeight};font-style:${rs.coeffFontStyle};
-            color:${rs.coeffColor};letter-spacing:${rs.coeffLetterSpacing};
-            white-space:nowrap;
-          ">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>${zT.zSep}${zBlock}`;
+      /* ── Colon separator ── */
+      const colonHtml = `<span style="font-family:${sc.colonFont};color:${sc.colonColor};white-space:pre;">${sc.colonText}</span>`;
 
-      srcHTML += `<tr>
-        <td class="col-sw" style="width:${swColW};padding:5px 0 5px 10px !important;vertical-align:middle;">
+      /* ── Coeff value ── */
+      const coeffHtml = `<span style="
+          font-family:${rs.coeffFont};font-size:${rs.coeffFontSize};
+          font-weight:${rs.coeffFontWeight};font-style:${rs.coeffFontStyle};
+          color:${rs.coeffColor};letter-spacing:${rs.coeffLetterSpacing};
+          white-space:nowrap;vertical-align:baseline;
+        ">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
+
+      /* Full data cell: ": coeff ± se  [gap]  (Z: 12.41)" */
+      const dataHtml = `${colonHtml}${coeffHtml}${zSepHtml}${zHtml}`;
+
+      srcHTML += `<tr style="background:${rowBg};">
+        <td class="col-sw" style="
+          width:${swColW};padding:5px 0 5px 10px !important;
+          vertical-align:middle;${sepBorder}
+          background:${ts.cellBg !== 'transparent' ? ts.cellBg : rowBg};
+        ">
           <span class="swatch" style="
             background:${colors[i]};
             width:${SWATCH.width};height:${SWATCH.height};
             border-radius:${SWATCH.radius};border:${SWATCH.border};
           "></span>
         </td>
-        <td class="col-name" style="text-align:${rs.nameAlign};padding-left:4px !important;vertical-align:middle;">
+        <td class="col-name" style="
+          text-align:${rs.nameAlign};padding:5px 4px !important;
+          vertical-align:middle;${sepBorder}
+          background:${ts.cellBg !== 'transparent' ? ts.cellBg : rowBg};
+        ">
           <span class="pop-name" style="
             font-family:${rs.nameFont};font-size:${rs.nameFontSize};
             font-weight:${rs.nameFontWeight};font-style:${rs.nameFontStyle};
@@ -773,11 +795,15 @@ function parseAndDraw() {
           ">${softBreak(pop)}</span>
         </td>
         <td class="col-data" style="
-          text-align:${rs.coeffAlign};white-space:nowrap;vertical-align:middle;
+          text-align:${rs.coeffAlign};white-space:nowrap;
+          padding:5px 10px;vertical-align:middle;${sepBorder}
+          background:${ts.cellBg !== 'transparent' ? ts.cellBg : rowBg};
         ">${dataHtml}</td>
       </tr>`;
     });
 
+    /* Remove bottom border from last row */
+    srcHTML = srcHTML.replace(/border-bottom:[^;]+;(<\/td>\s*<\/tr>\s*)$/, '$1');
     document.getElementById('sourcesBody').innerHTML = srcHTML;
 
     /* ── Outgroups ── */
@@ -790,9 +816,12 @@ function parseAndDraw() {
       ogH.textContent = ogh.text;
       applyT(ogH, ogh);
       ogH.style.textTransform = ogh.textTransform || 'uppercase';
-      ogH.style.padding = '5px 10px';
+      ogH.style.padding    = '5px 10px';
+      ogH.style.background = ts.headerBg;
+      ogH.style.borderBottom = `${ts.headerBorderWidth} solid ${ts.headerBorderColor}`;
       applyT(ogTd, ogc);
-      ogTd.style.padding = '5px 10px';
+      ogTd.style.padding    = '5px 10px';
+      ogTd.style.background = ts.cellBg;
       ogTd.textContent    = outgroups;
       ogBox.style.display = 'block';
     } else {
@@ -820,8 +849,9 @@ document.getElementById('paletteSelect').addEventListener('change', () => { if (
 window.addEventListener('resize', () => {
   if (document.getElementById('card').style.display !== 'none') {
     applyLayout();
-    const vb = document.getElementById('verdictBadge');
-    if (vb.textContent) applyVerdictPos(vb);
+    const vb   = document.getElementById('verdictBadge');
+    const pass = vb.textContent === 'PASS';
+    if (vb.textContent) applyVerdictPos(vb, pass);
   }
 });
 
