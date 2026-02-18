@@ -8,90 +8,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-
-    /* ╔══════════════════════════════════════════════════════════════╗
-       ║  DESIGN TOKENS — edit anything here to restyle the card     ║
-       ╚══════════════════════════════════════════════════════════════╝ */
-    :root {
-      /* ── Fonts ── */
-      --font-target:        'Roboto', sans-serif;
-      --font-stat:          'Roboto', sans-serif;
-      --font-verdict:       'Roboto', sans-serif;
-      --font-table-header:  'Roboto', sans-serif;
-      --font-pop-name:      'Roboto', sans-serif;
-      --font-coeff:         'Roboto', sans-serif;
-      --font-z:             'Roboto', sans-serif;
-      --font-outgroup:      'Roboto', sans-serif;
-      --font-watermark:     'Roboto', sans-serif;
-      --font-ui:            'Roboto', sans-serif;
-
-      /* ── Font weights ── */
-      --fw-target:          900;
-      --fw-stat:            400;
-      --fw-verdict:         700;
-      --fw-table-header:    600;
-      --fw-pop-name:        500;
-      --fw-coeff:           400;
-      --fw-z:               700;
-      --fw-outgroup:        400;
-
-      /* ── Font sizes ── */
-      --fs-target:          clamp(60px, 3.9vw, 46px);
-      --fs-stat:            clamp(25px, 1.4vw, 17px);
-      --fs-table-header:    clamp(10px, 0.82vw, 10px);
-      --fs-pop-name:        clamp(10px, 1.05vw, 13px);
-      --fs-coeff:           clamp(9px, 0.98vw, 12px);
-      --fs-z:               clamp(9px, 0.98vw, 12px);
-      --fs-verdict:         clamp(20px, 1.15vw, 14px);
-      --fs-outgroup:        clamp(9px, 0.92vw, 11px);
-
-      /* ── Letter spacing ── */
-      --ls-target:          -0.02em;
-      --ls-stat:             0.01em;
-      --ls-table-header:     0.1em;
-      --ls-verdict:          0.12em;
-
-      /* ── Verdict badge ── */
-      --pass-bg:            #dcfce7;
-      --pass-text:          #14532d;
-      --fail-bg:            #fee2e2;
-      --fail-text:          #7f1d1d;
-
-      /* ── Z-score tiers ── */
-      --z-good-color:       #16a34a;
-      --z-mid-color:        #ca8a04;
-      --z-bad-color:        #dc2626;
-
-      /* ── Swatch ──
-         Change these to resize / reshape the colour squares            */
-      --swatch-w:           25px;
-      --swatch-h:           16px;
-      --swatch-radius:      0px;            /* 0 = fully sharp           */
-      --swatch-border:      1.5px solid #000;
-
-      /* ── Z-score inner gap (space between "Z:" and the number) ── */
-      --z-gap:              6px;
-
-      /* ── Table chrome ── */
-      --table-border:       1.5px solid #d1d5db;
-      --row-sep:            1px solid #e5e7eb;
-      --cell-pad-v:         6px;
-      --cell-pad-h:         12px;
-      --header-bg:          #f3f4f6;
-
-      /* ── Card ── */
-      --card-radius:        4px;
-    }
-
-    /* ╔══════════════════════════════════════════════════════════════╗
-       ║  RESET & BODY                                               ║
-       ╚══════════════════════════════════════════════════════════════╝ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       min-height: 100vh;
       background: #111;
-      font-family: var(--font-ui);
+      font-family: 'Roboto', sans-serif;
       color: #e8e8e8;
       display: flex;
       flex-direction: column;
@@ -101,410 +23,177 @@
     }
 
     /* ── APP HEADER ── */
-    .app-header {
-      width: 100%;
-      max-width: 1000px;
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-    }
-    .app-title {
-      font-family: var(--font-ui);
-      font-size: 1.7rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.01em;
-    }
-    .app-subtitle {
-      font-size: 0.7rem;
-      font-weight: 500;
-      color: #444;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
+    .app-header { width: 100%; max-width: 1000px; display: flex; align-items: baseline; gap: 12px; }
+    .app-title  { font-size: 1.7rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+    .app-subtitle { font-size: 0.7rem; font-weight: 500; color: #444; letter-spacing: 0.14em; text-transform: uppercase; }
 
     /* ── INPUT PANEL ── */
-    .input-panel {
-      width: 100%;
-      max-width: 1000px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+    .input-panel { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 10px; }
     textarea {
-      width: 100%;
-      height: 150px;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 3px;
-      color: #c8c8c8;
-      font-family: monospace;
-      font-size: 11px;
-      line-height: 1.65;
-      padding: 12px 14px;
-      resize: vertical;
-      outline: none;
+      width: 100%; height: 150px;
+      background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 3px;
+      color: #c8c8c8; font-family: monospace; font-size: 11px; line-height: 1.65;
+      padding: 12px 14px; resize: vertical; outline: none;
     }
     textarea:focus { border-color: #444; }
     textarea::placeholder { color: #333; }
 
-    .controls-row, .social-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
+    .controls-row, .social-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .social-field { display: flex; align-items: center; gap: 6px; }
-    .social-field label {
-      font-size: 10px;
-      font-weight: 700;
-      color: #444;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      white-space: nowrap;
-    }
-    .social-field input {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 3px;
-      color: #bbb;
-      font-family: var(--font-ui);
-      font-size: 12px;
-      padding: 6px 9px;
-      width: 120px;
-      outline: none;
-    }
+    .social-field label { font-size: 10px; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap; }
+    .social-field input { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 3px; color: #bbb; font-size: 12px; padding: 6px 9px; width: 120px; outline: none; }
     .social-field input:focus { border-color: #444; }
 
-    .btn {
-      padding: 8px 18px;
-      border: none;
-      border-radius: 3px;
-      font-family: var(--font-ui);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+    .btn { padding: 8px 18px; border: none; border-radius: 3px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .btn-primary { background: #f0f0f0; color: #111; }
     .btn-primary:hover { background: #fff; }
     .btn-dl { background: #2563eb; color: #fff; display: none; }
     .btn-dl:hover { background: #1d4ed8; }
 
-    select {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 3px;
-      color: #bbb;
-      font-family: var(--font-ui);
-      font-size: 12px;
-      padding: 8px 10px;
-      cursor: pointer;
-      outline: none;
-    }
-    #formatBadge {
-      display: none;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 2px;
-      background: #0d2b18;
-      color: #4ade80;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-    }
+    select { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 3px; color: #bbb; font-size: 12px; padding: 8px 10px; cursor: pointer; outline: none; }
+
+    #formatBadge { display: none; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 2px; background: #0d2b18; color: #4ade80; letter-spacing: 0.07em; text-transform: uppercase; }
     #formatBadge.raw { background: #2b1800; color: #fb923c; }
 
-    /* ╔══════════════════════════════════════════════════════════════╗
-       ║  16 : 10.5  OUTPUT CARD                                     ║
-       ╚══════════════════════════════════════════════════════════════╝ */
+    /* ════════════════════════════════════════════════════════════
+       CARD  —  16 : 10.5 ratio, white, relative positioning base
+    ════════════════════════════════════════════════════════════ */
     #card {
       width: 100%;
       max-width: 1000px;
-      aspect-ratio: 16 / 9.5;
+      aspect-ratio: 16 / 10.5;
       background: #fff;
-      border-radius: var(--card-radius);
+      border-radius: 4px;
       display: none;
-      position: relative;
-      /* NO overflow:hidden — lets donut hover-expand without clipping */
+      position: relative;          /* ← absolute children anchor here */
+      overflow: visible;           /* donut can expand outside without clip */
       box-shadow: 0 20px 70px rgba(0,0,0,0.6);
     }
-    /* White background pseudo-layer (card has no overflow:hidden) */
+    /* Clipped white background layer so card looks clean even without overflow:hidden */
     .card-bg {
-      position: absolute;
-      inset: 0;
-      background: #fff;
-      border-radius: var(--card-radius);
-      z-index: 0;
-      pointer-events: none;
+      position: absolute; inset: 0;
+      background: #fff; border-radius: 4px;
+      z-index: 0; pointer-events: none;
     }
 
-    .card-inner {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      height: 100%;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      grid-template-columns: 48% 52%;
-    }
-
-    /* ── HEADER (full width) ── */
+    /* ── HEADER — anchored to top of card ── */
     .card-header {
-      grid-column: 1 / -1;
-      grid-row: 1;
+      position: absolute;
+      top: 0; left: 0; right: 0;
       padding: 18px 28px 10px 28px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
+      display: flex; flex-direction: column; align-items: center;
+      z-index: 2;
     }
     .card-target {
-      font-family: var(--font-target);
-      font-size: var(--fs-target);
-      font-weight: var(--fw-target);
-      letter-spacing: var(--ls-target);
+      font-size: clamp(22px, 3.8vw, 50px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
       color: #0a0a0a;
       line-height: 1.05;
       text-align: center;
       width: 100%;
     }
     .stat-line {
-      font-family: var(--font-stat);
-      font-size: var(--fs-stat);
-      font-weight: var(--fw-stat);
-      letter-spacing: var(--ls-stat);
+      font-size: clamp(11px, 1.35vw, 30px);
+      font-weight: 400;
       color: #444;
       margin-top: 5px;
       text-align: center;
+      letter-spacing: 0.01em;
     }
     .stat-sep { color: #bbb; margin: 0 10px; }
 
     /* PASS / FAIL */
     .verdict-badge {
       position: absolute;
-      top: 18px;
-      right: 28px;
-      padding: 7px 18px;
-      border-radius: 0;
-      border: none;
-      font-family: var(--font-verdict);
-      font-size: var(--fs-verdict);
-      font-weight: var(--fw-verdict);
-      letter-spacing: var(--ls-verdict);
+      top: 18px; right: 28px;
+      padding: 7px 11px;
+      border: none; border-radius: 0;
+      font-size: clamp(11px, 1.15vw, 14px);
+      font-weight: 700;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
+      z-index: 3;
     }
-    .verdict-badge.pass { background: var(--pass-bg); color: var(--pass-text); }
-    .verdict-badge.fail { background: var(--fail-bg); color: var(--fail-text); }
+    .verdict-badge.pass { background: #dcfce7; color: #14532d; }
+    .verdict-badge.fail { background: #fee2e2; color: #7f1d1d; }
 
-    /* ╔══════════════════════════════════════════════════════════════╗
-       ║  LEFT COLUMN: DONUT                                          ║
-       ╚══════════════════════════════════════════════════════════════╝
-       Vertical centering strategy:
-       - chart-col is a flex container that fills its grid cell
-       - #donutWrap is height-driven: it fills the column height
-         (minus padding), then aspect-ratio:1 makes it square.
-       - max-width clamps it so it never gets enormous.              */
-    .chart-col {
-      grid-column: 1;
-      grid-row: 2;
-      display: flex;
-      align-items: top;
-      justify-content: center;
-      padding: 12px 8px 20px 20px;
-      /* min-height:0 prevents grid blowout */
-      min-height: 0;
-    }
+    /* ── DONUT — freely positioned absolute layer ──
+       Position & size are set entirely from JS LAYOUT config.
+       z-index: 10 so it floats above tables.                   */
     #donutWrap {
-      /* Height-driven square: fills the column's available height */
-      height: 100%;
-      max-height: 450px;
-      aspect-ratio: 1 / 1;
-      width: auto;
-      max-width: 90%;
-      position: relative;
-      flex-shrink: 0;
+      position: absolute;
+      z-index: 10;
+      /* width/height/top/left injected by applyLayout() */
     }
     #donutWrap canvas {
-      width:  100% !important;
+      width: 100% !important;
       height: 100% !important;
       display: block;
     }
 
-    /* ── RIGHT: Info panel ── */
+    /* ── INFO PANEL — right side, below header ──
+       Left edge, top, width all controlled from JS LAYOUT config. */
     .info-col {
-      grid-column: 2;
-      grid-row: 2;
+      position: absolute;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 6px 22px 18px 4px;
       gap: 10px;
       min-width: 0;
-      min-height: 0;
+      z-index: 2;
+      /* top/left/right/bottom injected by applyLayout() */
     }
 
-    /* ╔══════════════════════════════════════════════════════════════╗
-       ║  SHARED TABLE STYLES                                         ║
-       ╚══════════════════════════════════════════════════════════════╝ */
-    .data-box {
-      border: var(--table-border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-
-    /* ── Column headers ── */
+    /* ── SHARED TABLE ── */
+    .data-box { border: 1.5px solid #d1d5db; border-radius: 2px; overflow: hidden; }
+    .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .data-table thead th {
-      background: var(--header-bg);
-      border-bottom: var(--table-border);
-      font-family: var(--font-table-header);
-      font-size: var(--fs-table-header);
-      font-weight: var(--fw-table-header);
-      letter-spacing: var(--ls-table-header);
-      text-transform: uppercase;
-      color: #6b7280;
-      padding: var(--cell-pad-v) var(--cell-pad-h);
+      background: #f3f4f6;
+      border-bottom: 1.5px solid #d1d5db;
+      padding: 6px 12px;
       text-align: center;
       white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
-    /* Sources: first real header (population name col) stays left */
-    .sources-table thead th.th-source { text-align: left; }
-
-    /* ── Body cells (defaults) ── */
-    .data-table tbody td {
-      padding: var(--cell-pad-v) var(--cell-pad-h);
-      border-bottom: var(--row-sep);
-    }
+    .data-table tbody td { padding: 6px 12px; border-bottom: 1px solid #e5e7eb; }
     .data-table tbody tr:last-child td { border-bottom: none; }
 
-    /* ╔══════════════════════════════════════════════════════════════╗
-       ║  SOURCES TABLE COLUMNS                                       ║
-       ╚══════════════════════════════════════════════════════════════╝ */
-    /* Swatch column — narrow, no header text */
-    .th-swatch, .td-swatch {
-      width: 32px;
-      padding: var(--cell-pad-v) 0 var(--cell-pad-v) var(--cell-pad-h) !important;
-      text-align: left;
-      vertical-align: middle;
-    }
-    /* Source name column */
-    .th-source, .td-source {
-      width: 40%;
-      text-align: left;
-      vertical-align: middle;
-      /* allow wrapping at <wbr> hints — do NOT overflow: hidden here */
-      overflow: visible;
-      white-space: normal;
-      word-break: normal;    /* break only at <wbr> hints, not mid-char */
-      overflow-wrap: normal;
-      padding-left: 4px !important;
-    }
-    /* Coeff column */
-    .th-coeff, .td-coeff {
-      width: 33%;
-      text-align: center;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-    /* Z column */
-    .th-z, .td-z {
-      width: 18%;
-      text-align: center;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
+    /* Sources column widths */
+    .th-swatch, .td-swatch { width: 30px; padding: 6px 0 6px 12px !important; text-align: left; vertical-align: middle; }
+    .th-source, .td-source { width: 40%; text-align: left; vertical-align: middle; overflow: visible; white-space: normal; word-break: normal; overflow-wrap: normal; padding-left: 4px !important; }
+    .th-coeff,  .td-coeff  { width: 33%; text-align: center; vertical-align: middle; white-space: nowrap; }
+    .th-z,      .td-z      { width: 18%; text-align: center; vertical-align: middle; white-space: nowrap; }
 
-    /* ── Swatch square ── */
+    /* Sources header left-align for name column */
+    .sources-table thead th.th-source { text-align: left; }
+
+    /* Swatch */
     .swatch {
       display: inline-block;
-      width:         var(--swatch-w);
-      height:        var(--swatch-h);
-      border-radius: var(--swatch-radius);
-      border:        var(--swatch-border);
       vertical-align: middle;
       flex-shrink: 0;
+      /* width/height/radius/border set from CSS vars injected by JS */
     }
 
-    /* ── Population name ── */
-    .pop-name {
-      font-family: var(--font-pop-name);
-      font-size:   var(--fs-pop-name);
-      font-weight: var(--fw-pop-name);
-      color: #111;
-      vertical-align: middle;
-      /* <wbr> tags do the breaking; hyphens as fallback */
-      hyphens: none;
-      line-height: 1.35;
-    }
+    /* Pop name */
+    .pop-name { vertical-align: middle; hyphens: none; line-height: 1.35; }
 
-    /* ── Coeff value ── */
-    .coeff-val {
-      font-family: var(--font-coeff);
-      font-size:   var(--fs-coeff);
-      font-weight: var(--fw-coeff);
-      color: #374151;
-    }
+    /* Z alignment */
+    .z-inner { display: inline-grid; grid-template-columns: 1.6em auto; align-items: center; gap: 6px; justify-content: center; }
+    .z-label { text-align: right; white-space: nowrap; }
+    .z-num   { min-width: 3.5ch; text-align: right; white-space: nowrap; }
+    .z-good { color: #16a34a; }
+    .z-mid  { color: #ca8a04; }
+    .z-bad  { color: #dc2626; }
 
-    /* ── Z-score cell ── */
-    .z-cell {
-      font-family: var(--font-z);
-      font-size:   var(--fs-z);
-      font-weight: var(--fw-z);
-    }
-    /*  Fixed two-column grid so "Z:" never shifts regardless of digit count */
-    .z-inner {
-      display: inline-grid;
-      grid-template-columns: 1.6em auto;
-      align-items: center;
-      gap: var(--z-gap);    /* ← space between "Z:" and the number */
-      justify-content: center;
-    }
-    .z-label {
-      text-align: right;
-      white-space: nowrap;
-    }
-    .z-num {
-      min-width: 3.5ch;
-      text-align: right;
-      white-space: nowrap;
-    }
-    .z-good { color: var(--z-good-color); }
-    .z-mid  { color: var(--z-mid-color);  }
-    .z-bad  { color: var(--z-bad-color);  }
+    /* Outgroups */
+    .outgroups-table thead th { text-align: center !important; }
+    .outgroups-td { white-space: normal; word-break: break-word; overflow-wrap: break-word; line-height: 1.6; text-align: left; }
 
-    /* ╔══════════════════════════════════════════════════════════════╗
-       ║  OUTGROUPS TABLE (header + 1 text cell)                      ║
-       ╚══════════════════════════════════════════════════════════════╝ */
-    .outgroups-table thead th { text-align: left !important; }
-    .outgroups-td {
-      font-family: var(--font-outgroup);
-      font-size:   var(--fs-outgroup);
-      font-weight: var(--fw-outgroup);
-      color: #6b7280;
-      white-space: normal;
-      word-break: break-word;
-      overflow-wrap: break-word;
-      line-height: 1.6;
-      text-align: left;
-    }
-
-    /* ── Watermark ── */
-    .watermark {
-      position: absolute;
-      bottom: 8px;
-      right: 12px;
-      font-family: var(--font-watermark);
-      font-size: 9px;
-      font-weight: 500;
-      color: #c0cad6;
-      letter-spacing: 0.05em;
-      z-index: 2;
-    }
-
+    /* Watermark */
+    .watermark { position: absolute; bottom: 8px; right: 12px; font-size: 9px; font-weight: 500; color: #c0cad6; letter-spacing: 0.05em; z-index: 5; }
   </style>
 </head>
 <body>
@@ -515,11 +204,7 @@
   </div>
 
   <div class="input-panel">
-    <textarea id="qpadmText" placeholder="Paste raw qpAdm log or pre-formatted summary…
-
-RAW LOG: full qpAdm output with left pops / right pops / best coefficients / std. errors / f4rank lines.
-SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 | chisq: 8.04 | Rights: …"></textarea>
-
+    <textarea id="qpadmText" placeholder="Paste raw qpAdm log or pre-formatted summary…"></textarea>
     <div class="controls-row">
       <button class="btn btn-primary" onclick="parseAndDraw()">Generate</button>
       <select id="paletteSelect">
@@ -537,394 +222,528 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
       <span id="formatBadge"></span>
       <button class="btn btn-dl" id="downloadBtn" onclick="downloadImage()">↓ Download PNG</button>
     </div>
-
     <div class="social-row">
-      <div class="social-field">
-        <label>Telegram</label>
-        <input type="text" id="telegramInput" placeholder="@username">
-      </div>
-      <div class="social-field">
-        <label>X / Twitter</label>
-        <input type="text" id="xInput" placeholder="@username">
-      </div>
-      <div class="social-field">
-        <label>Discord</label>
-        <input type="text" id="discordInput" placeholder="username">
-      </div>
+      <div class="social-field"><label>Telegram</label><input type="text" id="telegramInput" placeholder="@username"></div>
+      <div class="social-field"><label>X / Twitter</label><input type="text" id="xInput" placeholder="@username"></div>
+      <div class="social-field"><label>Discord</label><input type="text" id="discordInput" placeholder="username"></div>
     </div>
   </div>
 
-  <!-- ══ 16:10.5 CARD ══ -->
+  <!-- CARD -->
   <div id="card">
     <div class="card-bg"></div>
-    <div class="card-inner">
+    <div class="card-header">
+      <div class="card-target"  id="cardTarget"></div>
+      <div class="stat-line"    id="statLine"></div>
+      <div class="verdict-badge" id="verdictBadge"></div>
+    </div>
 
-      <div class="card-header">
-        <div class="card-target" id="cardTarget"></div>
-        <div class="stat-line" id="statLine"></div>
-        <div class="verdict-badge" id="verdictBadge"></div>
+    <!-- Donut: absolutely positioned, z-index 10, floats over everything -->
+    <div id="donutWrap">
+      <canvas id="donutChart"></canvas>
+    </div>
+
+    <!-- Info panel: absolutely positioned on the right -->
+    <div class="info-col" id="infoCol">
+      <div class="data-box">
+        <table class="data-table sources-table" id="sourcesTable">
+          <thead>
+            <tr>
+              <th class="th-swatch"></th>
+              <th class="th-source" id="hdrSource">Sources</th>
+              <th class="th-coeff"  id="hdrCoeff">Coeff ± SE</th>
+              <th class="th-z"      id="hdrZ">Z-Score</th>
+            </tr>
+          </thead>
+          <tbody id="sourcesBody"></tbody>
+        </table>
       </div>
-
-      <!-- Donut -->
-      <div class="chart-col">
-        <div id="donutWrap">
-          <canvas id="donutChart"></canvas>
-        </div>
+      <div class="data-box" id="outgroupsBox" style="display:none;">
+        <table class="data-table outgroups-table">
+          <thead><tr><th id="hdrOutgroups">Right (Outgroups)</th></tr></thead>
+          <tbody><tr><td class="outgroups-td" id="outgroupsTd"></td></tr></tbody>
+        </table>
       </div>
+    </div>
 
-      <!-- Info panel -->
-      <div class="info-col">
-
-        <!-- Sources table: swatch col | name col | coeff col | Z col -->
-        <div class="data-box">
-          <table class="data-table sources-table">
-            <thead>
-              <tr>
-                <th class="th-swatch"></th>           <!-- empty — swatch has no header -->
-                <th class="th-source">Sources</th>
-                <th class="th-coeff">Coeff ± SE</th>
-                <th class="th-z">Z-Score</th>
-              </tr>
-            </thead>
-            <tbody id="sourcesBody"></tbody>
-          </table>
-        </div>
-
-        <!-- Outgroups: 1 header + 1 comma-string cell -->
-        <div class="data-box" id="outgroupsBox" style="display:none;">
-          <table class="data-table outgroups-table">
-            <thead>
-              <tr><th>Right (Outgroups)</th></tr>
-            </thead>
-            <tbody>
-              <tr><td class="outgroups-td" id="outgroupsTd"></td></tr>
-            </tbody>
-          </table>
-        </div>
-
-      </div><!-- .info-col -->
-    </div><!-- .card-inner -->
     <div class="watermark" id="watermark"></div>
-  </div><!-- #card -->
+  </div>
 
   <script>
-    /* ╔══════════════════════════════════════════════════════════════╗
-       ║  JS CONFIG — mirrors CSS tokens + controls Chart.js          ║
-       ║  Edit these values to change chart behaviour                 ║
-       ╚══════════════════════════════════════════════════════════════╝ */
-    const CFG = {
-      /* Donut appearance */
-      donutCutout:      '52%',     /* hole size: '0%' = solid pie, '90%' = thin ring  */
-      donutBorderW:     2,         /* slice border width in px                         */
-      donutBorderC:     '#000000', /* slice border colour                              */
-      donutHoverOff:    14,        /* px expansion of a slice when hovered             */
+  /* ══════════════════════════════════════════════════════════════════════
+     ▌ LAYOUT CONFIG
+     ▌ All positions are percentages of the CARD dimensions.
+     ▌ donutCenterX / donutCenterY = center of donut as % of card W / H
+     ▌ donutDiameter = diameter as % of card WIDTH
+     ▌ infoPanelLeft = left edge of info panel as % of card width
+     ▌ infoPanelTop  = top  edge of info panel as % of card height
+     ▌ infoPanelRight/Bottom = right/bottom inset as % of card W/H
+  ══════════════════════════════════════════════════════════════════════ */
+  const LAYOUT = {
+    donutCenterX:    25,    /* % of card width  — horizontal center of donut */
+    donutCenterY:    62,    /* % of card height — vertical   center of donut */
+    donutDiameter:   46,    /* % of card width  — diameter of donut          */
 
-      /* Rotation direction
-         true  → slices drawn CLOCKWISE   (standard)
-         false → slices drawn ANTICLOCKWISE                                           */
-      donutClockwise:   true,
+    infoPanelLeft:   48,    /* % of card width  — left edge of table panel   */
+    infoPanelTop:    22,    /* % of card height — top  edge of table panel   */
+    infoPanelRight:   2,    /* % of card width  — right inset                */
+    infoPanelBottom:  3,    /* % of card height — bottom inset               */
+  };
 
-      /* Starting angle in degrees
-         -90 = 12 o'clock (top),  0 = 3 o'clock (right),  90 = 6 o'clock (bottom)   */
-      donutStartAngle:  -90,
+  /* ══════════════════════════════════════════════════════════════════════
+     ▌ DONUT CONFIG
+  ══════════════════════════════════════════════════════════════════════ */
+  const CFG = {
+    donutCutout:      '52%',      /* hole: '0%' = solid pie, '90%' = thin ring    */
+    donutBorderW:     2,          /* slice border width in px                      */
+    donutBorderC:     '#000000',  /* slice border colour                           */
+    donutHoverOff:    14,         /* px — expansion on hover                       */
+    donutClockwise:   true,       /* true = clockwise, false = anti-clockwise      */
+    donutStartAngle: -90,         /* degrees: -90=12 o'clock, 0=3 o'clock, 90=6   */
+    zGoodMin:         3,
+    zMidMin:          2,
+  };
 
-      /* Z-score tier thresholds (match CSS --z-good-min / --z-mid-min) */
-      zGoodMin:         3,
-      zMidMin:          2,
-    };
+  /* ══════════════════════════════════════════════════════════════════════
+     ▌ SWATCH CONFIG
+  ══════════════════════════════════════════════════════════════════════ */
+  const SWATCH = {
+    width:   '22px',
+    height:  '14px',
+    radius:  '0px',              /* '0px' = sharp, '3px' = slightly rounded  */
+    border:  '1.5px solid #000',
+  };
 
-    let chartObj = null;
+  /* ══════════════════════════════════════════════════════════════════════
+     ▌ TABLE TYPOGRAPHY CONFIG
+     ▌
+     ▌ SOURCES TABLE
+     ▌   header.*         — styles for each header cell
+     ▌   defaultRow.*     — applied to ALL data rows by default
+     ▌   rowOverrides[]   — array of {index, ...styles} for per-row overrides
+     ▌                       index 0 = first source row
+     ▌
+     ▌ OUTGROUPS TABLE
+     ▌   header.*         — header cell
+     ▌   cell.*           — the single data cell
+     ▌
+     ▌ Available style keys for any section:
+     ▌   font, fontSize, fontWeight, color, align, letterSpacing, lineHeight
+  ══════════════════════════════════════════════════════════════════════ */
+  const TABLE_CFG = {
+    sources: {
+      header: {
+        font:          'Roboto, sans-serif',
+        fontSize:      '9px',
+        fontWeight:    600,
+        color:         '#6b7280',
+        align:         'center',           /* overridden to 'left' for Sources col in CSS */
+        letterSpacing: '0.1em',
+        lineHeight:    '1.4',
+      },
+      defaultRow: {
+        /* Population name cell */
+        nameFont:         'Roboto, sans-serif',
+        nameFontSize:     '12px',
+        nameFontWeight:   500,
+        nameColor:        '#111111',
+        nameAlign:        'left',
+        /* Coeff ± SE cell */
+        coeffFont:        'Roboto, sans-serif',
+        coeffFontSize:    '11px',
+        coeffFontWeight:  400,
+        coeffColor:       '#374151',
+        coeffAlign:       'center',
+        /* Z-score cell — colour overridden per z-tier */
+        zFont:            'Roboto, sans-serif',
+        zFontSize:        '11px',
+        zFontWeight:      700,
+        zGap:             '6px',           /* space between "Z:" and the number */
+      },
+      /*  Per-row style overrides.
+          Each entry: { index: N, <any key from defaultRow> }
+          e.g. { index: 0, nameColor: '#e63946', nameFontWeight: 700 }      */
+      rowOverrides: [
+        // { index: 0, nameColor: '#e63946' },
+        // { index: 1, coeffFontWeight: 700  },
+      ],
+    },
 
-    const colorPalettes = [
-      ["#4477aa","#ee6677","#228833","#ccbb44","#66ccee","#aa3377","#bbbbbb","#44bb99","#eedd88","#77aadd"],
-      ["#e41a1c","#377eb8","#4daf4a","#984ea3","#ff7f00","#a65628","#f781bf","#999999","#66c2a5","#fc8d62"],
-      ["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02","#a6761d","#666666","#1f78b4","#b2df8a"],
-      ["#8dd3c7","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5","#d9d9d9","#bc80bd","#ccebc5"],
-      ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"],
-      ["#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a"],
-      ["#a8dadc","#457b9d","#e63946","#f4a261","#2a9d8f","#e9c46a","#264653","#b5838d","#6d6875","#c77dff"],
-      ["#ff595e","#ffca3a","#6a4c93","#1982c4","#8ac926","#f86624","#ea3546","#662e9b","#43bccd","#f9c80e"],
-      ["#264653","#2a9d8f","#e9c46a","#f4a261","#e76f51","#a8dadc","#457b9d","#1d3557","#e63946","#52b788"],
-      ["#66c2a5","#fc8d62","#8da0cb","#e78ac3","#a6d854","#ffd92f","#e5c494","#b3b3b3","#a6761d","#1b9e77"]
-    ];
+    outgroups: {
+      header: {
+        font:          'Roboto, sans-serif',
+        fontSize:      '9px',
+        fontWeight:    600,
+        color:         '#6b7280',
+        align:         'center',
+        letterSpacing: '0.1em',
+        lineHeight:    '1.4',
+      },
+      cell: {
+        font:          'Roboto, sans-serif',
+        fontSize:      '10px',
+        fontWeight:    400,
+        color:         '#6b7280',
+        align:         'left',
+        lineHeight:    '1.6',
+      },
+    },
+  };
 
-    /* ── Format detection ── */
-    function isRawFormat(t) {
-      return /left pops\s*:/i.test(t) && /right pops\s*:/i.test(t);
+  /* ══════════════════════════════════════════════════════════════════════
+     ▌ COLOR PALETTES
+  ══════════════════════════════════════════════════════════════════════ */
+  const colorPalettes = [
+    ["#4477aa","#ee6677","#228833","#ccbb44","#66ccee","#aa3377","#bbbbbb","#44bb99","#eedd88","#77aadd"],
+    ["#e41a1c","#377eb8","#4daf4a","#984ea3","#ff7f00","#a65628","#f781bf","#999999","#66c2a5","#fc8d62"],
+    ["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02","#a6761d","#666666","#1f78b4","#b2df8a"],
+    ["#8dd3c7","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5","#d9d9d9","#bc80bd","#ccebc5"],
+    ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"],
+    ["#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a"],
+    ["#a8dadc","#457b9d","#e63946","#f4a261","#2a9d8f","#e9c46a","#264653","#b5838d","#6d6875","#c77dff"],
+    ["#ff595e","#ffca3a","#6a4c93","#1982c4","#8ac926","#f86624","#ea3546","#662e9b","#43bccd","#f9c80e"],
+    ["#264653","#2a9d8f","#e9c46a","#f4a261","#e76f51","#a8dadc","#457b9d","#1d3557","#e63946","#52b788"],
+    ["#66c2a5","#fc8d62","#8da0cb","#e78ac3","#a6d854","#ffd92f","#e5c494","#b3b3b3","#a6761d","#1b9e77"],
+  ];
+
+  let chartObj = null;
+
+  /* ── Apply LAYOUT config: position donut and info panel ── */
+  function applyLayout() {
+    const card     = document.getElementById('card');
+    const wrap     = document.getElementById('donutWrap');
+    const infoCol  = document.getElementById('infoCol');
+    const cW = card.offsetWidth;
+    const cH = card.offsetHeight;
+
+    const diam = (LAYOUT.donutDiameter / 100) * cW;
+    const cx   = (LAYOUT.donutCenterX  / 100) * cW;
+    const cy   = (LAYOUT.donutCenterY  / 100) * cH;
+
+    wrap.style.width  = diam + 'px';
+    wrap.style.height = diam + 'px';
+    wrap.style.left   = (cx - diam / 2) + 'px';
+    wrap.style.top    = (cy - diam / 2) + 'px';
+
+    const il = (LAYOUT.infoPanelLeft   / 100) * cW;
+    const it = (LAYOUT.infoPanelTop    / 100) * cH;
+    const ir = (LAYOUT.infoPanelRight  / 100) * cW;
+    const ib = (LAYOUT.infoPanelBottom / 100) * cH;
+    infoCol.style.left   = il + 'px';
+    infoCol.style.top    = it + 'px';
+    infoCol.style.right  = ir + 'px';
+    infoCol.style.bottom = ib + 'px';
+  }
+
+  /* ── Apply TABLE_CFG styles to header cells ── */
+  function applyHeaderStyle(el, style) {
+    if (!el || !style) return;
+    if (style.font)          el.style.fontFamily    = style.font;
+    if (style.fontSize)      el.style.fontSize      = style.fontSize;
+    if (style.fontWeight)    el.style.fontWeight    = style.fontWeight;
+    if (style.color)         el.style.color         = style.color;
+    if (style.align)         el.style.textAlign     = style.align;
+    if (style.letterSpacing) el.style.letterSpacing = style.letterSpacing;
+    if (style.lineHeight)    el.style.lineHeight    = style.lineHeight;
+  }
+
+  /* ── Build merged row style (default + optional override) ── */
+  function rowStyle(index) {
+    const def = Object.assign({}, TABLE_CFG.sources.defaultRow);
+    const ov  = TABLE_CFG.sources.rowOverrides.find(r => r.index === index);
+    return ov ? Object.assign(def, ov) : def;
+  }
+
+  /* ── softBreak: insert <wbr> after _ . - ── */
+  function softBreak(name) {
+    return name.replace(/([_.\-])/g, '$1<wbr>');
+  }
+
+  /* ── Format detection ── */
+  function isRawFormat(t) {
+    return /left pops\s*:/i.test(t) && /right pops\s*:/i.test(t);
+  }
+
+  /* ── Raw parser ── */
+  function parseRaw(text) {
+    const lines = text.split('\n');
+    const li = lines.findIndex(l => /^\s*left pops\s*:/i.test(l));
+    if (li < 0) throw new Error('"left pops:" not found');
+    const leftPops = [];
+    for (let i = li + 1; i < lines.length; i++) {
+      const l = lines[i].trim();
+      if (!l || /^right pops/i.test(l)) break;
+      const m = l.match(/^(\S+)\s+\d+/);
+      if (m) leftPops.push(m[1]);
     }
+    if (leftPops.length < 2) throw new Error('Need target + ≥1 source in left pops');
+    const target = leftPops[0], sources = leftPops.slice(1);
 
-    /* ── Insert <wbr> soft-break hints after _ . - so long names wrap
-       at symbol boundaries instead of mid-character or overflowing   ── */
-    function softBreak(name) {
-      /* After every _ . - insert a <wbr> tag (zero-width break opportunity) */
-      return name.replace(/([_.\-])/g, '$1<wbr>');
-    }
-
-    /* ── Raw qpAdm log parser ── */
-    function parseRaw(text) {
-      const lines = text.split('\n');
-
-      const li = lines.findIndex(l => /^\s*left pops\s*:/i.test(l));
-      if (li < 0) throw new Error('"left pops:" not found');
-      const leftPops = [];
-      for (let i = li + 1; i < lines.length; i++) {
+    const ri = lines.findIndex(l => /^\s*right pops\s*:/i.test(l));
+    const rightPops = [];
+    if (ri >= 0) {
+      for (let i = ri + 1; i < lines.length; i++) {
         const l = lines[i].trim();
-        if (!l || /^right pops/i.test(l)) break;
+        if (!l || /^(left pops|codimension|f4rank|best coeff)/i.test(l)) break;
         const m = l.match(/^(\S+)\s+\d+/);
-        if (m) leftPops.push(m[1]);
+        if (m) rightPops.push(m[1]);
       }
-      if (leftPops.length < 2) throw new Error('Need target + ≥1 source in left pops');
-      const target  = leftPops[0];
-      const sources = leftPops.slice(1);
-
-      const ri = lines.findIndex(l => /^\s*right pops\s*:/i.test(l));
-      const rightPops = [];
-      if (ri >= 0) {
-        for (let i = ri + 1; i < lines.length; i++) {
-          const l = lines[i].trim();
-          if (!l || /^(left pops|codimension|f4rank|best coeff)/i.test(l)) break;
-          const m = l.match(/^(\S+)\s+\d+/);
-          if (m) rightPops.push(m[1]);
-        }
-      }
-
-      let pValue = NaN, chisq = NaN;
-      const ci = lines.findIndex(l => /^\s*codimension\s+1\b/.test(l));
-      if (ci >= 0) {
-        for (let i = ci + 1; i < Math.min(ci + 6, lines.length); i++) {
-          const m = lines[i].match(/f4rank:.*?chisq:\s*([\d.]+)\s+tail:\s*([\d.eE+\-]+)/);
-          if (m) { chisq = parseFloat(m[1]); pValue = parseFloat(m[2]); break; }
-        }
-      }
-      if (isNaN(pValue)) {
-        for (const l of lines) {
-          const m = l.match(/f4rank:.*?dof:\s*(\d+)\s+chisq:\s*([\d.]+)\s+tail:\s*([\d.eE+\-]+)/);
-          if (m && parseInt(m[1]) > 0) { chisq = parseFloat(m[2]); pValue = parseFloat(m[3]); break; }
-        }
-      }
-      if (isNaN(pValue)) throw new Error('Could not parse p-value from f4rank line');
-
-      const cl = lines.find(l => /best coefficients:/.test(l));
-      if (!cl) throw new Error('"best coefficients:" not found');
-      const coeffs = cl.replace('best coefficients:', '').trim()
-                       .split(/\s+/).map(Number).filter(v => !isNaN(v));
-      if (coeffs.length !== sources.length)
-        throw new Error(`Coefficients (${coeffs.length}) ≠ sources (${sources.length})`);
-
-      const sl = lines.find(l => /std\.\s*errors:/.test(l));
-      if (!sl) throw new Error('"std. errors:" not found');
-      const ses = sl.replace(/std\.\s*errors:/, '').trim()
-                    .split(/\s+/).map(Number).filter(v => !isNaN(v));
-      if (ses.length !== sources.length)
-        throw new Error(`SEs (${ses.length}) ≠ sources (${sources.length})`);
-
-      const total   = coeffs.reduce((a, b) => a + b, 0);
-      const weights = coeffs.map(c => (c / total) * 100);
-      const sesPct  = ses.map(s => s * 100);
-      const zScores = coeffs.map((c, i) => ses[i] > 0 ? c / ses[i] : 0);
-      return { target, sources, weights, sesPct, zScores, pValue, chisq,
-               outgroups: rightPops.join(', ') };
     }
 
-    /* ── Summary format parser ── */
-    function parseSummary(text) {
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      const tl = lines.find(l => l.startsWith('Target:'));
-      if (!tl) throw new Error('Target line not found');
-      const target = tl.replace('Target:', '').trim();
-
-      const ws = lines.findIndex(l => l.startsWith('Weights:'));
-      if (ws < 0) throw new Error('Weights section not found');
-
-      const pvl = lines.find(l => l.startsWith('P value:'));
-      const chl = lines.find(l => l.startsWith('chisq:'));
-      if (!pvl) throw new Error('P value not found');
-      if (!chl) throw new Error('chisq not found');
-
-      const pValue = parseFloat(pvl.replace('P value:', '').trim());
-      const chisq  = parseFloat(chl.replace('chisq:', '').trim());
-      const rgl    = lines.find(l => l.startsWith('Rights:'));
-      const outgroups = rgl ? rgl.replace('Rights:', '').trim() : '';
-
-      const sources = [], weights = [], sesPct = [], zScores = [];
-      for (let i = ws + 1; i < lines.length; i++) {
-        const l = lines[i];
-        if (/^(P value:|chisq:|Rights:)/.test(l)) break;
-        const m = l.match(/^(.+?)\s*-\s*([\d.]+)%\s*SE:\s*([\d.]+)%\s*Z:\s*([-\d.]+)/);
-        if (m) {
-          sources.push(m[1].trim());
-          weights.push(parseFloat(m[2]));
-          sesPct.push(parseFloat(m[3]));
-          zScores.push(parseFloat(m[4]));
-        }
+    let pValue = NaN, chisq = NaN;
+    const ci = lines.findIndex(l => /^\s*codimension\s+1\b/.test(l));
+    if (ci >= 0) {
+      for (let i = ci + 1; i < Math.min(ci + 6, lines.length); i++) {
+        const m = lines[i].match(/f4rank:.*?chisq:\s*([\d.]+)\s+tail:\s*([\d.eE+\-]+)/);
+        if (m) { chisq = parseFloat(m[1]); pValue = parseFloat(m[2]); break; }
       }
-      if (!sources.length) throw new Error('No populations found in Weights block');
-      const total = weights.reduce((a, b) => a + b, 0);
-      return { target, sources, weights: weights.map(w => (w / total) * 100),
-               sesPct, zScores, pValue, chisq, outgroups };
     }
-
-    function zClass(z) {
-      if (z >= CFG.zGoodMin) return 'z-good';
-      if (z >= CFG.zMidMin)  return 'z-mid';
-      return 'z-bad';
+    if (isNaN(pValue)) {
+      for (const l of lines) {
+        const m = l.match(/f4rank:.*?dof:\s*(\d+)\s+chisq:\s*([\d.]+)\s+tail:\s*([\d.eE+\-]+)/);
+        if (m && parseInt(m[1]) > 0) { chisq = parseFloat(m[2]); pValue = parseFloat(m[3]); break; }
+      }
     }
+    if (isNaN(pValue)) throw new Error('Could not parse p-value from f4rank line');
 
-    /* ══ MAIN RENDER ══ */
-    function parseAndDraw() {
-      const text = document.getElementById('qpadmText').value.trim();
-      document.getElementById('card').style.display        = 'none';
-      document.getElementById('downloadBtn').style.display = 'none';
+    const cl = lines.find(l => /best coefficients:/.test(l));
+    if (!cl) throw new Error('"best coefficients:" not found');
+    const coeffs = cl.replace('best coefficients:', '').trim().split(/\s+/).map(Number).filter(v => !isNaN(v));
+    if (coeffs.length !== sources.length) throw new Error(`Coefficients (${coeffs.length}) ≠ sources (${sources.length})`);
 
-      try {
-        let parsed, fmtTxt, fmtCls;
-        if (isRawFormat(text)) {
-          parsed  = parseRaw(text);     fmtTxt = '⚙ Raw log'; fmtCls = 'raw';
-        } else {
-          parsed  = parseSummary(text); fmtTxt = '✓ Summary'; fmtCls = '';
-        }
-        const badge = document.getElementById('formatBadge');
-        badge.textContent = fmtTxt; badge.className = fmtCls;
-        badge.style.display = 'inline-block';
+    const sl = lines.find(l => /std\.\s*errors:/.test(l));
+    if (!sl) throw new Error('"std. errors:" not found');
+    const ses = sl.replace(/std\.\s*errors:/, '').trim().split(/\s+/).map(Number).filter(v => !isNaN(v));
+    if (ses.length !== sources.length) throw new Error(`SEs (${ses.length}) ≠ sources (${sources.length})`);
 
-        const { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups } = parsed;
+    const total = coeffs.reduce((a, b) => a + b, 0);
+    return {
+      target, sources,
+      weights: coeffs.map(c => (c / total) * 100),
+      sesPct:  ses.map(s => s * 100),
+      zScores: coeffs.map((c, i) => ses[i] > 0 ? c / ses[i] : 0),
+      pValue, chisq,
+      outgroups: rightPops.join(', '),
+    };
+  }
 
-        /* Verdict */
-        const pass = pValue >= 0.05;
-        const vb   = document.getElementById('verdictBadge');
-        vb.textContent = pass ? 'PASS' : 'FAIL';
-        vb.className   = 'verdict-badge ' + (pass ? 'pass' : 'fail');
+  /* ── Summary parser ── */
+  function parseSummary(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const tl = lines.find(l => l.startsWith('Target:'));
+    if (!tl) throw new Error('Target line not found');
+    const target = tl.replace('Target:', '').trim();
+    const ws = lines.findIndex(l => l.startsWith('Weights:'));
+    if (ws < 0) throw new Error('Weights section not found');
+    const pvl = lines.find(l => l.startsWith('P value:'));
+    const chl = lines.find(l => l.startsWith('chisq:'));
+    if (!pvl) throw new Error('P value not found');
+    if (!chl) throw new Error('chisq not found');
+    const pValue = parseFloat(pvl.replace('P value:', '').trim());
+    const chisq  = parseFloat(chl.replace('chisq:', '').trim());
+    const rgl    = lines.find(l => l.startsWith('Rights:'));
+    const outgroups = rgl ? rgl.replace('Rights:', '').trim() : '';
+    const sources = [], weights = [], sesPct = [], zScores = [];
+    for (let i = ws + 1; i < lines.length; i++) {
+      const l = lines[i];
+      if (/^(P value:|chisq:|Rights:)/.test(l)) break;
+      const m = l.match(/^(.+?)\s*-\s*([\d.]+)%\s*SE:\s*([\d.]+)%\s*Z:\s*([-\d.]+)/);
+      if (m) { sources.push(m[1].trim()); weights.push(parseFloat(m[2])); sesPct.push(parseFloat(m[3])); zScores.push(parseFloat(m[4])); }
+    }
+    if (!sources.length) throw new Error('No populations found in Weights block');
+    const total = weights.reduce((a, b) => a + b, 0);
+    return { target, sources, weights: weights.map(w => (w / total) * 100), sesPct, zScores, pValue, chisq, outgroups };
+  }
 
-        /* Target heading */
-        document.getElementById('cardTarget').textContent = target;
+  function zClass(z) {
+    if (z >= CFG.zGoodMin) return 'z-good';
+    if (z >= CFG.zMidMin)  return 'z-mid';
+    return 'z-bad';
+  }
 
-        /* Stats line */
-        const pd = pValue < 0.0001
-          ? pValue.toExponential(4)
-          : parseFloat(pValue.toPrecision(7)).toString();
-        document.getElementById('statLine').innerHTML =
-          `χ² = ${chisq.toFixed(2)}<span class="stat-sep"> / </span>p = ${pd}`;
+  /* ══ MAIN RENDER ══ */
+  function parseAndDraw() {
+    const text = document.getElementById('qpadmText').value.trim();
+    document.getElementById('card').style.display        = 'none';
+    document.getElementById('downloadBtn').style.display = 'none';
 
-        /* Colors */
-        const pidx   = parseInt(document.getElementById('paletteSelect').value);
-        const pal    = colorPalettes[pidx];
-        const colors = sources.map((_, i) =>
-          i < pal.length ? pal[i] : `hsl(${Math.round(360*i/sources.length)},62%,52%)`
-        );
+    try {
+      let parsed, fmtTxt, fmtCls;
+      if (isRawFormat(text)) {
+        parsed = parseRaw(text);      fmtTxt = '⚙ Raw log'; fmtCls = 'raw';
+      } else {
+        parsed = parseSummary(text);  fmtTxt = '✓ Summary'; fmtCls = '';
+      }
+      const badge = document.getElementById('formatBadge');
+      badge.textContent = fmtTxt; badge.className = fmtCls; badge.style.display = 'inline-block';
 
-        /* ── Donut chart ──────────────────────────────────────────────
-           layout.padding = CFG.donutHoverOff:
-             Chart.js reserves this many pixels inside the canvas
-             before drawing. Hovered slices expand INTO this space,
-             never past the canvas edge → no clipping at any boundary.
+      const { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups } = parsed;
 
-           hoverBackgroundColor = colors → no colour change on hover.
+      /* Verdict */
+      const pass = pValue >= 0.05;
+      const vb = document.getElementById('verdictBadge');
+      vb.textContent = pass ? 'PASS' : 'FAIL';
+      vb.className   = 'verdict-badge ' + (pass ? 'pass' : 'fail');
 
-           circumference: clockwise → +360, anti-clockwise → -360
-           rotation: start angle in degrees (-90 = 12 o'clock)        */
-        const ctx = document.getElementById('donutChart').getContext('2d');
-        if (chartObj) chartObj.destroy();
-        chartObj = new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: sources,
-            datasets: [{
-              data:                 weights,
-              backgroundColor:      colors,
-              hoverBackgroundColor: colors,        /* no colour shift on hover */
-              borderColor:          CFG.donutBorderC,
-              hoverBorderColor:     CFG.donutBorderC,
-              borderWidth:          CFG.donutBorderW,
-              hoverBorderWidth:     CFG.donutBorderW,
-              hoverOffset:          CFG.donutHoverOff
-            }]
+      /* Title — "Target: …" prefix */
+      document.getElementById('cardTarget').textContent = 'Target: ' + target;
+
+      /* Stats */
+      const pd = pValue < 0.0001 ? pValue.toExponential(4) : parseFloat(pValue.toPrecision(7)).toString();
+      document.getElementById('statLine').innerHTML =
+        `χ² = ${chisq.toFixed(2)}<span class="stat-sep"> / </span>p = ${pd}`;
+
+      /* Colors */
+      const pidx   = parseInt(document.getElementById('paletteSelect').value);
+      const pal    = colorPalettes[pidx];
+      const colors = sources.map((_, i) => i < pal.length ? pal[i] : `hsl(${Math.round(360*i/sources.length)},62%,52%)`);
+
+      /* Show card so we can measure it, then apply layout */
+      document.getElementById('card').style.display = 'block';
+      applyLayout();
+
+      /* Donut */
+      const ctx = document.getElementById('donutChart').getContext('2d');
+      if (chartObj) chartObj.destroy();
+      chartObj = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: sources,
+          datasets: [{
+            data: weights,
+            backgroundColor:      colors,
+            hoverBackgroundColor: colors,
+            borderColor:          CFG.donutBorderC,
+            hoverBorderColor:     CFG.donutBorderC,
+            borderWidth:          CFG.donutBorderW,
+            hoverBorderWidth:     CFG.donutBorderW,
+            hoverOffset:          CFG.donutHoverOff,
+          }]
+        },
+        options: {
+          responsive:    true,
+          cutout:        CFG.donutCutout,
+          rotation:      CFG.donutStartAngle,
+          circumference: CFG.donutClockwise ? 360 : -360,
+          layout: { padding: CFG.donutHoverOff },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => ` ${c.label}: ${c.parsed.toFixed(1)}%` } }
           },
-          options: {
-            responsive:    true,
-            cutout:        CFG.donutCutout,
-            rotation:      CFG.donutStartAngle,
-            circumference: CFG.donutClockwise ? 360 : -360,
-            layout: {
-              padding: CFG.donutHoverOff   /* room for hover expansion */
-            },
-            plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: { label: c => ` ${c.label}: ${c.parsed.toFixed(1)}%` }
-              }
-            },
-            animation: { animateRotate: true, duration: 550 }
-          }
-        });
-
-        /* ── Sources table rows ── */
-        let srcRows = '';
-        sources.forEach((pop, i) => {
-          const z   = zScores[i];
-          const zCl = zClass(z);
-          srcRows += `<tr>
-            <td class="td-swatch">
-              <span class="swatch" style="background:${colors[i]}"></span>
-            </td>
-            <td class="td-source">
-              <span class="pop-name">${softBreak(pop)}</span>
-            </td>
-            <td class="td-coeff coeff-val">${weights[i].toFixed(1)}% ± ${sesPct[i].toFixed(2)}%</td>
-            <td class="td-z z-cell ${zCl}">
-              <span class="z-inner">
-                <span class="z-label">Z:</span>
-                <span class="z-num">${z.toFixed(2)}</span>
-              </span>
-            </td>
-          </tr>`;
-        });
-        document.getElementById('sourcesBody').innerHTML = srcRows;
-
-        /* ── Outgroups ── */
-        const ogBox = document.getElementById('outgroupsBox');
-        const ogTd  = document.getElementById('outgroupsTd');
-        if (outgroups) {
-          ogTd.textContent    = outgroups;
-          ogBox.style.display = 'block';
-        } else {
-          ogBox.style.display = 'none';
+          animation: { animateRotate: true, duration: 550 }
         }
+      });
 
-        /* ── Watermark ── */
-        const tg = document.getElementById('telegramInput').value.trim();
-        const xw = document.getElementById('xInput').value.trim();
-        const dc = document.getElementById('discordInput').value.trim();
-        const parts = [];
-        if (tg) parts.push(`TG: ${tg}`);
-        if (xw) parts.push(`X: ${xw}`);
-        if (dc) parts.push(`DC: ${dc}`);
-        document.getElementById('watermark').textContent = parts.join('  ·  ');
+      /* Apply table header styles */
+      const hSrc = TABLE_CFG.sources.header;
+      applyHeaderStyle(document.getElementById('hdrSource'),   hSrc);
+      applyHeaderStyle(document.getElementById('hdrCoeff'),    hSrc);
+      applyHeaderStyle(document.getElementById('hdrZ'),        hSrc);
+      // Sources col keeps left-align despite shared header style
+      document.getElementById('hdrSource').style.textAlign = 'left';
 
-        document.getElementById('card').style.display        = 'block';
-        document.getElementById('downloadBtn').style.display = 'inline-block';
+      const hOg = TABLE_CFG.outgroups.header;
+      applyHeaderStyle(document.getElementById('hdrOutgroups'), hOg);
 
-      } catch (e) {
-        alert('Parse error:\n\n' + e.message);
-        console.error(e);
+      /* Sources rows */
+      let srcRows = '';
+      sources.forEach((pop, i) => {
+        const rs  = rowStyle(i);
+        const z   = zScores[i];
+        const zCl = zClass(z);
+        srcRows += `<tr>
+          <td class="td-swatch">
+            <span class="swatch" style="
+              background:   ${colors[i]};
+              width:        ${SWATCH.width};
+              height:       ${SWATCH.height};
+              border-radius:${SWATCH.radius};
+              border:       ${SWATCH.border};
+            "></span>
+          </td>
+          <td class="td-source" style="text-align:${rs.nameAlign}">
+            <span class="pop-name" style="
+              font-family: ${rs.nameFont};
+              font-size:   ${rs.nameFontSize};
+              font-weight: ${rs.nameFontWeight};
+              color:       ${rs.nameColor};
+            ">${softBreak(pop)}</span>
+          </td>
+          <td class="td-coeff" style="
+            font-family: ${rs.coeffFont};
+            font-size:   ${rs.coeffFontSize};
+            font-weight: ${rs.coeffFontWeight};
+            color:       ${rs.coeffColor};
+            text-align:  ${rs.coeffAlign};
+          ">${weights[i].toFixed(1)}% ± ${sesPct[i].toFixed(2)}%</td>
+          <td class="td-z z-cell ${zCl}" style="
+            font-family: ${rs.zFont};
+            font-size:   ${rs.zFontSize};
+            font-weight: ${rs.zFontWeight};
+          ">
+            <span class="z-inner" style="gap:${rs.zGap}">
+              <span class="z-label">Z:</span>
+              <span class="z-num">${z.toFixed(2)}</span>
+            </span>
+          </td>
+        </tr>`;
+      });
+      document.getElementById('sourcesBody').innerHTML = srcRows;
+
+      /* Outgroups */
+      const ogBox = document.getElementById('outgroupsBox');
+      const ogTd  = document.getElementById('outgroupsTd');
+      if (outgroups) {
+        const cs = TABLE_CFG.outgroups.cell;
+        ogTd.style.fontFamily  = cs.font;
+        ogTd.style.fontSize    = cs.fontSize;
+        ogTd.style.fontWeight  = cs.fontWeight;
+        ogTd.style.color       = cs.color;
+        ogTd.style.textAlign   = cs.align;
+        ogTd.style.lineHeight  = cs.lineHeight;
+        ogTd.textContent    = outgroups;
+        ogBox.style.display = 'block';
+      } else {
+        ogBox.style.display = 'none';
       }
-    }
 
-    document.getElementById('paletteSelect').addEventListener('change', () => {
-      if (chartObj) parseAndDraw();
-    });
+      /* Watermark */
+      const tg = document.getElementById('telegramInput').value.trim();
+      const xw = document.getElementById('xInput').value.trim();
+      const dc = document.getElementById('discordInput').value.trim();
+      const parts = [];
+      if (tg) parts.push(`TG: ${tg}`);
+      if (xw) parts.push(`X: ${xw}`);
+      if (dc) parts.push(`DC: ${dc}`);
+      document.getElementById('watermark').textContent = parts.join('  ·  ');
 
-    function downloadImage() {
-      const card = document.getElementById('card');
-      card.style.overflow = 'hidden';
-      html2canvas(card, { scale: 3, backgroundColor: '#ffffff', useCORS: true })
-        .then(canvas => {
-          card.style.overflow = '';
-          const a = document.createElement('a');
-          a.download = 'qpAdm_chart.png';
-          a.href = canvas.toDataURL('image/png');
-          a.click();
-        });
+      document.getElementById('downloadBtn').style.display = 'inline-block';
+
+    } catch (e) {
+      alert('Parse error:\n\n' + e.message);
+      console.error(e);
     }
+  }
+
+  document.getElementById('paletteSelect').addEventListener('change', () => { if (chartObj) parseAndDraw(); });
+
+  /* Re-apply layout on window resize */
+  window.addEventListener('resize', () => {
+    if (document.getElementById('card').style.display !== 'none') applyLayout();
+  });
+
+  function downloadImage() {
+    const card = document.getElementById('card');
+    card.style.overflow = 'hidden';
+    html2canvas(card, { scale: 3, backgroundColor: '#ffffff', useCORS: true })
+      .then(canvas => {
+        card.style.overflow = '';
+        const a = document.createElement('a');
+        a.download = 'qpAdm_chart.png';
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+      });
+  }
   </script>
 </body>
 </html>
