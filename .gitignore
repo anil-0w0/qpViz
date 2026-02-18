@@ -1,4 +1,67 @@
-*.jl.cov
-*.jl.*.cov
-*.jl.mem
-deps/deps.jl
+0.commands.txt
+*.tsv
+*.db
+*.db-journal
+
+# --- Your folders ---
+bin/
+input/
+output/
+logs/
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor / IDE ---
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+pip-wheel-metadata/
+*.egg-info/
+.eggs/
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- Logs ---
+*.log
+
+# --- Environment / secrets ---
+.env
+.env.*
+*.pem
+*.key
+
+# --- Build / dist ---
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# --- Archives ---
+*.zip
+*.tar
+*.gz
+*.7z
+
+# --- Temporary ---
+*.tmp
+*.temp
+*.bak
+*.old
+
