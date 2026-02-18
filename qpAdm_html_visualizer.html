@@ -13,73 +13,74 @@
        ║  DESIGN TOKENS — edit anything here to restyle the card     ║
        ╚══════════════════════════════════════════════════════════════╝ */
     :root {
-      /* ── Fonts (swap family name to change typeface) ── */
-      --font-target:       'Roboto', sans-serif;   /* large population name */
-      --font-stat:         'Roboto', sans-serif;   /* χ² / p line           */
-      --font-verdict:      'Roboto', sans-serif;   /* PASS / FAIL badge     */
-      --font-table-header: 'Roboto', sans-serif;   /* column headers        */
-      --font-pop-name:     'Roboto', sans-serif;   /* source population names */
-      --font-coeff:        'Roboto', sans-serif;   /* coeff ± SE values     */
-      --font-z:            'Roboto', sans-serif;   /* Z-score values        */
-      --font-outgroup:     'Roboto', sans-serif;   /* outgroup text         */
-      --font-watermark:    'Roboto', sans-serif;   /* social watermark      */
-      --font-ui:           'Roboto', sans-serif;   /* app chrome            */
+      /* ── Fonts ── */
+      --font-target:        'Roboto', sans-serif;
+      --font-stat:          'Roboto', sans-serif;
+      --font-verdict:       'Roboto', sans-serif;
+      --font-table-header:  'Roboto', sans-serif;
+      --font-pop-name:      'Roboto', sans-serif;
+      --font-coeff:         'Roboto', sans-serif;
+      --font-z:             'Roboto', sans-serif;
+      --font-outgroup:      'Roboto', sans-serif;
+      --font-watermark:     'Roboto', sans-serif;
+      --font-ui:            'Roboto', sans-serif;
 
       /* ── Font weights ── */
-      --fw-target:         900;
-      --fw-stat:           400;
-      --fw-verdict:        700;
-      --fw-table-header:   600;
-      --fw-pop-name:       500;
-      --fw-coeff:          400;
-      --fw-z:              700;
-      --fw-outgroup:       400;
+      --fw-target:          900;
+      --fw-stat:            400;
+      --fw-verdict:         700;
+      --fw-table-header:    600;
+      --fw-pop-name:        500;
+      --fw-coeff:           400;
+      --fw-z:               700;
+      --fw-outgroup:        400;
 
-      /* ── Font sizes (inside card) ── */
-      --fs-target:         clamp(24px, 3.9vw, 46px);
-      --fs-stat:           clamp(11px, 1.4vw,  17px);
-      --fs-table-header:   clamp(8px,  0.82vw, 10px);
-      --fs-pop-name:       clamp(10px, 1.05vw, 13px);
-      --fs-coeff:          clamp(9px,  0.98vw, 12px);
-      --fs-z:              clamp(9px,  0.98vw, 12px);
-      --fs-verdict:        clamp(11px, 1.15vw, 14px);
-      --fs-outgroup:       clamp(9px,  0.92vw, 11px);
+      /* ── Font sizes ── */
+      --fs-target:          clamp(60px, 3.9vw, 46px);
+      --fs-stat:            clamp(25px, 1.4vw, 17px);
+      --fs-table-header:    clamp(10px, 0.82vw, 10px);
+      --fs-pop-name:        clamp(10px, 1.05vw, 13px);
+      --fs-coeff:           clamp(9px, 0.98vw, 12px);
+      --fs-z:               clamp(9px, 0.98vw, 12px);
+      --fs-verdict:         clamp(20px, 1.15vw, 14px);
+      --fs-outgroup:        clamp(9px, 0.92vw, 11px);
 
       /* ── Letter spacing ── */
-      --ls-target:         -0.02em;
-      --ls-stat:            0.01em;
-      --ls-table-header:    0.1em;
-      --ls-verdict:         0.12em;
+      --ls-target:          -0.02em;
+      --ls-stat:             0.01em;
+      --ls-table-header:     0.1em;
+      --ls-verdict:          0.12em;
 
-      /* ── Verdict badge colours ── */
-      --pass-bg:           #dcfce7;   /* very light green fill */
-      --pass-text:         #14532d;   /* dark green text       */
-      --fail-bg:           #fee2e2;   /* very light red fill   */
-      --fail-text:         #7f1d1d;   /* dark red text         */
+      /* ── Verdict badge ── */
+      --pass-bg:            #dcfce7;
+      --pass-text:          #14532d;
+      --fail-bg:            #fee2e2;
+      --fail-text:          #7f1d1d;
 
-      /* ── Z-score thresholds & colours ── */
-      --z-good-min:        3;         /* Z ≥ 3   → green  */
-      --z-mid-min:         2;         /* Z ≥ 2   → yellow */
-                                      /* Z <  2  → red    */
-      --z-good-color:      #16a34a;
-      --z-mid-color:       #ca8a04;
-      --z-bad-color:       #dc2626;
+      /* ── Z-score tiers ── */
+      --z-good-color:       #16a34a;
+      --z-mid-color:        #ca8a04;
+      --z-bad-color:        #dc2626;
 
-      /* ── Swatch (legend colour square) ── */
-      --swatch-w:          18px;      /* width  */
-      --swatch-h:          14px;      /* height */
-      --swatch-radius:     0px;       /* 0 = sharp corners */
-      --swatch-border:     1.5px solid #000;
+      /* ── Swatch ──
+         Change these to resize / reshape the colour squares            */
+      --swatch-w:           25px;
+      --swatch-h:           16px;
+      --swatch-radius:      0px;            /* 0 = fully sharp           */
+      --swatch-border:      1.5px solid #000;
 
-      /* ── Table ── */
-      --table-border:      1.5px solid #d1d5db;
-      --row-sep:           1px solid #e5e7eb;
-      --cell-pad-v:        6px;
-      --cell-pad-h:        12px;
-      --header-bg:         #f3f4f6;
+      /* ── Z-score inner gap (space between "Z:" and the number) ── */
+      --z-gap:              6px;
+
+      /* ── Table chrome ── */
+      --table-border:       1.5px solid #d1d5db;
+      --row-sep:            1px solid #e5e7eb;
+      --cell-pad-v:         6px;
+      --cell-pad-h:         12px;
+      --header-bg:          #f3f4f6;
 
       /* ── Card ── */
-      --card-radius:       4px;
+      --card-radius:        4px;
     }
 
     /* ╔══════════════════════════════════════════════════════════════╗
@@ -214,12 +215,12 @@
     #formatBadge.raw { background: #2b1800; color: #fb923c; }
 
     /* ╔══════════════════════════════════════════════════════════════╗
-       ║  16 : 12  OUTPUT CARD                                       ║
+       ║  16 : 10.5  OUTPUT CARD                                     ║
        ╚══════════════════════════════════════════════════════════════╝ */
     #card {
       width: 100%;
       max-width: 1000px;
-      aspect-ratio: 16 / 12;
+      aspect-ratio: 16 / 9.5;
       background: #fff;
       border-radius: var(--card-radius);
       display: none;
@@ -227,7 +228,7 @@
       /* NO overflow:hidden — lets donut hover-expand without clipping */
       box-shadow: 0 20px 70px rgba(0,0,0,0.6);
     }
-    /* White background layer (since card has no overflow:hidden) */
+    /* White background pseudo-layer (card has no overflow:hidden) */
     .card-bg {
       position: absolute;
       inset: 0;
@@ -244,14 +245,14 @@
       height: 100%;
       display: grid;
       grid-template-rows: auto 1fr;
-      grid-template-columns: 50% 50%;
+      grid-template-columns: 48% 52%;
     }
 
-    /* ── HEADER (spans full width) ── */
+    /* ── HEADER (full width) ── */
     .card-header {
       grid-column: 1 / -1;
       grid-row: 1;
-      padding: 20px 28px 10px 28px;
+      padding: 18px 28px 10px 28px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -263,7 +264,7 @@
       font-weight: var(--fw-target);
       letter-spacing: var(--ls-target);
       color: #0a0a0a;
-      line-height: 1;
+      line-height: 1.05;
       text-align: center;
       width: 100%;
     }
@@ -273,7 +274,7 @@
       font-weight: var(--fw-stat);
       letter-spacing: var(--ls-stat);
       color: #444;
-      margin-top: 6px;
+      margin-top: 5px;
       text-align: center;
     }
     .stat-sep { color: #bbb; margin: 0 10px; }
@@ -281,7 +282,7 @@
     /* PASS / FAIL */
     .verdict-badge {
       position: absolute;
-      top: 20px;
+      top: 18px;
       right: 28px;
       padding: 7px 18px;
       border-radius: 0;
@@ -295,28 +296,33 @@
     .verdict-badge.pass { background: var(--pass-bg); color: var(--pass-text); }
     .verdict-badge.fail { background: var(--fail-bg); color: var(--fail-text); }
 
-    /* ── LEFT: Donut column ── */
+    /* ╔══════════════════════════════════════════════════════════════╗
+       ║  LEFT COLUMN: DONUT                                          ║
+       ╚══════════════════════════════════════════════════════════════╝
+       Vertical centering strategy:
+       - chart-col is a flex container that fills its grid cell
+       - #donutWrap is height-driven: it fills the column height
+         (minus padding), then aspect-ratio:1 makes it square.
+       - max-width clamps it so it never gets enormous.              */
     .chart-col {
       grid-column: 1;
       grid-row: 2;
       display: flex;
-      align-items: center;      /* vertical centre */
+      align-items: top;
       justify-content: center;
-      /* no overflow clipping here */
+      padding: 12px 8px 20px 20px;
+      /* min-height:0 prevents grid blowout */
+      min-height: 0;
     }
-    /*
-      The wrapper must be large enough that hoverOffset expansion
-      stays inside the canvas. We achieve this by giving Chart.js
-      layout.padding = HOVER_OFFSET px (see JS CFG).
-      That reserves internal canvas space so slices expand inward,
-      not beyond the canvas edge.
-    */
     #donutWrap {
-      /* Fill ~90% of the column, square */
-      width: min(380px, 90%);
-      aspect-ratio: 1;
+      /* Height-driven square: fills the column's available height */
+      height: 100%;
+      max-height: 450px;
+      aspect-ratio: 1 / 1;
+      width: auto;
+      max-width: 90%;
       position: relative;
-      /* No extra CSS padding — Chart.js layout.padding handles hover room */
+      flex-shrink: 0;
     }
     #donutWrap canvas {
       width:  100% !important;
@@ -331,12 +337,15 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 6px 24px 20px 4px;
+      padding: 6px 22px 18px 4px;
       gap: 10px;
       min-width: 0;
+      min-height: 0;
     }
 
-    /* ── SHARED TABLE WRAPPER ── */
+    /* ╔══════════════════════════════════════════════════════════════╗
+       ║  SHARED TABLE STYLES                                         ║
+       ╚══════════════════════════════════════════════════════════════╝ */
     .data-box {
       border: var(--table-border);
       border-radius: 2px;
@@ -348,7 +357,7 @@
       table-layout: fixed;
     }
 
-    /* Column headers */
+    /* ── Column headers ── */
     .data-table thead th {
       background: var(--header-bg);
       border-bottom: var(--table-border);
@@ -362,69 +371,115 @@
       text-align: center;
       white-space: nowrap;
     }
-    /* Sources first column stays left-aligned */
-    .data-table.sources-table thead th:first-child { text-align: left; }
+    /* Sources: first real header (population name col) stays left */
+    .sources-table thead th.th-source { text-align: left; }
 
-    /* Body cells */
+    /* ── Body cells (defaults) ── */
     .data-table tbody td {
       padding: var(--cell-pad-v) var(--cell-pad-h);
       border-bottom: var(--row-sep);
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
     .data-table tbody tr:last-child td { border-bottom: none; }
 
-    /* ── Swatch ── */
+    /* ╔══════════════════════════════════════════════════════════════╗
+       ║  SOURCES TABLE COLUMNS                                       ║
+       ╚══════════════════════════════════════════════════════════════╝ */
+    /* Swatch column — narrow, no header text */
+    .th-swatch, .td-swatch {
+      width: 32px;
+      padding: var(--cell-pad-v) 0 var(--cell-pad-v) var(--cell-pad-h) !important;
+      text-align: left;
+      vertical-align: middle;
+    }
+    /* Source name column */
+    .th-source, .td-source {
+      width: 40%;
+      text-align: left;
+      vertical-align: middle;
+      /* allow wrapping at <wbr> hints — do NOT overflow: hidden here */
+      overflow: visible;
+      white-space: normal;
+      word-break: normal;    /* break only at <wbr> hints, not mid-char */
+      overflow-wrap: normal;
+      padding-left: 4px !important;
+    }
+    /* Coeff column */
+    .th-coeff, .td-coeff {
+      width: 33%;
+      text-align: center;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    /* Z column */
+    .th-z, .td-z {
+      width: 18%;
+      text-align: center;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* ── Swatch square ── */
     .swatch {
+      display: inline-block;
       width:         var(--swatch-w);
       height:        var(--swatch-h);
       border-radius: var(--swatch-radius);
       border:        var(--swatch-border);
-      display:       inline-block;
       vertical-align: middle;
-      margin-right:  8px;
-      flex-shrink:   0;
+      flex-shrink: 0;
     }
 
-    /* ── Sources table columns ── */
-    .col-source { width: 46%; text-align: left; }
-    .col-coeff  { width: 33%; text-align: center; }
-    .col-z      { width: 21%; text-align: center; }
-
+    /* ── Population name ── */
     .pop-name {
       font-family: var(--font-pop-name);
       font-size:   var(--fs-pop-name);
       font-weight: var(--fw-pop-name);
       color: #111;
       vertical-align: middle;
+      /* <wbr> tags do the breaking; hyphens as fallback */
+      hyphens: none;
+      line-height: 1.35;
     }
+
+    /* ── Coeff value ── */
     .coeff-val {
       font-family: var(--font-coeff);
       font-size:   var(--fs-coeff);
       font-weight: var(--fw-coeff);
       color: #374151;
     }
+
+    /* ── Z-score cell ── */
     .z-cell {
       font-family: var(--font-z);
       font-size:   var(--fs-z);
       font-weight: var(--fw-z);
     }
-    /* Z label + number always vertically aligned */
+    /*  Fixed two-column grid so "Z:" never shifts regardless of digit count */
     .z-inner {
       display: inline-grid;
-      grid-template-columns: 1.8em 4ch;
-      /* "Z:" always in column 1, number always in column 2 */
+      grid-template-columns: 1.6em auto;
       align-items: center;
+      gap: var(--z-gap);    /* ← space between "Z:" and the number */
+      justify-content: center;
     }
-    .z-label { text-align: right; }
-    .z-num   { text-align: right; }
-
+    .z-label {
+      text-align: right;
+      white-space: nowrap;
+    }
+    .z-num {
+      min-width: 3.5ch;
+      text-align: right;
+      white-space: nowrap;
+    }
     .z-good { color: var(--z-good-color); }
     .z-mid  { color: var(--z-mid-color);  }
     .z-bad  { color: var(--z-bad-color);  }
 
-    /* ── Outgroups table (2 rows: header + single text cell) ── */
-    .outgroups-table thead th { text-align: center !important; }
+    /* ╔══════════════════════════════════════════════════════════════╗
+       ║  OUTGROUPS TABLE (header + 1 text cell)                      ║
+       ╚══════════════════════════════════════════════════════════════╝ */
+    .outgroups-table thead th { text-align: left !important; }
     .outgroups-td {
       font-family: var(--font-outgroup);
       font-size:   var(--fs-outgroup);
@@ -432,11 +487,12 @@
       color: #6b7280;
       white-space: normal;
       word-break: break-word;
+      overflow-wrap: break-word;
       line-height: 1.6;
       text-align: left;
     }
 
-    /* Watermark */
+    /* ── Watermark ── */
     .watermark {
       position: absolute;
       bottom: 8px;
@@ -461,7 +517,7 @@
   <div class="input-panel">
     <textarea id="qpadmText" placeholder="Paste raw qpAdm log or pre-formatted summary…
 
-RAW LOG: paste the full qpAdm output (left pops / right pops / best coefficients / std. errors / f4rank)
+RAW LOG: full qpAdm output with left pops / right pops / best coefficients / std. errors / f4rank lines.
 SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 | chisq: 8.04 | Rights: …"></textarea>
 
     <div class="controls-row">
@@ -498,7 +554,7 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
     </div>
   </div>
 
-  <!-- ══ 16:12 CARD ══ -->
+  <!-- ══ 16:10.5 CARD ══ -->
   <div id="card">
     <div class="card-bg"></div>
     <div class="card-inner">
@@ -519,21 +575,22 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
       <!-- Info panel -->
       <div class="info-col">
 
-        <!-- Sources table -->
+        <!-- Sources table: swatch col | name col | coeff col | Z col -->
         <div class="data-box">
           <table class="data-table sources-table">
             <thead>
               <tr>
-                <th class="col-source">Sources</th>
-                <th class="col-coeff">Coeff ± SE</th>
-                <th class="col-z">Z-Score</th>
+                <th class="th-swatch"></th>           <!-- empty — swatch has no header -->
+                <th class="th-source">Sources</th>
+                <th class="th-coeff">Coeff ± SE</th>
+                <th class="th-z">Z-Score</th>
               </tr>
             </thead>
             <tbody id="sourcesBody"></tbody>
           </table>
         </div>
 
-        <!-- Outgroups: header row + single data row with comma-separated string -->
+        <!-- Outgroups: 1 header + 1 comma-string cell -->
         <div class="data-box" id="outgroupsBox" style="display:none;">
           <table class="data-table outgroups-table">
             <thead>
@@ -545,24 +602,35 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
           </table>
         </div>
 
-      </div>
+      </div><!-- .info-col -->
     </div><!-- .card-inner -->
     <div class="watermark" id="watermark"></div>
   </div><!-- #card -->
 
   <script>
-    /* ══════════════════════════════════════════════════════════════
-       JS CONFIG — mirrors CSS variables for Chart.js settings
-       ══════════════════════════════════════════════════════════════ */
+    /* ╔══════════════════════════════════════════════════════════════╗
+       ║  JS CONFIG — mirrors CSS tokens + controls Chart.js          ║
+       ║  Edit these values to change chart behaviour                 ║
+       ╚══════════════════════════════════════════════════════════════╝ */
     const CFG = {
-      donutCutout:     '52%',  /* hole size: 0% = solid, 90% = thin ring */
-      donutBorderW:    2,      /* px – slice border width                 */
-      donutBorderC:    '#000000',
-      donutHoverOff:   14,     /* px – slice expansion on hover           */
-      /* Chart.js layout.padding = donutHoverOff ensures expanding slices
-         stay inside the canvas without any CSS padding on the wrapper    */
-      zGoodMin:        3,
-      zMidMin:         2,
+      /* Donut appearance */
+      donutCutout:      '52%',     /* hole size: '0%' = solid pie, '90%' = thin ring  */
+      donutBorderW:     2,         /* slice border width in px                         */
+      donutBorderC:     '#000000', /* slice border colour                              */
+      donutHoverOff:    14,        /* px expansion of a slice when hovered             */
+
+      /* Rotation direction
+         true  → slices drawn CLOCKWISE   (standard)
+         false → slices drawn ANTICLOCKWISE                                           */
+      donutClockwise:   true,
+
+      /* Starting angle in degrees
+         -90 = 12 o'clock (top),  0 = 3 o'clock (right),  90 = 6 o'clock (bottom)   */
+      donutStartAngle:  -90,
+
+      /* Z-score tier thresholds (match CSS --z-good-min / --z-mid-min) */
+      zGoodMin:         3,
+      zMidMin:          2,
     };
 
     let chartObj = null;
@@ -580,14 +648,22 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
       ["#66c2a5","#fc8d62","#8da0cb","#e78ac3","#a6d854","#ffd92f","#e5c494","#b3b3b3","#a6761d","#1b9e77"]
     ];
 
+    /* ── Format detection ── */
     function isRawFormat(t) {
       return /left pops\s*:/i.test(t) && /right pops\s*:/i.test(t);
     }
 
+    /* ── Insert <wbr> soft-break hints after _ . - so long names wrap
+       at symbol boundaries instead of mid-character or overflowing   ── */
+    function softBreak(name) {
+      /* After every _ . - insert a <wbr> tag (zero-width break opportunity) */
+      return name.replace(/([_.\-])/g, '$1<wbr>');
+    }
+
+    /* ── Raw qpAdm log parser ── */
     function parseRaw(text) {
       const lines = text.split('\n');
 
-      /* left pops */
       const li = lines.findIndex(l => /^\s*left pops\s*:/i.test(l));
       if (li < 0) throw new Error('"left pops:" not found');
       const leftPops = [];
@@ -601,7 +677,6 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
       const target  = leftPops[0];
       const sources = leftPops.slice(1);
 
-      /* right pops */
       const ri = lines.findIndex(l => /^\s*right pops\s*:/i.test(l));
       const rightPops = [];
       if (ri >= 0) {
@@ -613,7 +688,6 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
         }
       }
 
-      /* p-value + chisq */
       let pValue = NaN, chisq = NaN;
       const ci = lines.findIndex(l => /^\s*codimension\s+1\b/.test(l));
       if (ci >= 0) {
@@ -630,7 +704,6 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
       }
       if (isNaN(pValue)) throw new Error('Could not parse p-value from f4rank line');
 
-      /* coefficients */
       const cl = lines.find(l => /best coefficients:/.test(l));
       if (!cl) throw new Error('"best coefficients:" not found');
       const coeffs = cl.replace('best coefficients:', '').trim()
@@ -638,7 +711,6 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
       if (coeffs.length !== sources.length)
         throw new Error(`Coefficients (${coeffs.length}) ≠ sources (${sources.length})`);
 
-      /* SEs */
       const sl = lines.find(l => /std\.\s*errors:/.test(l));
       if (!sl) throw new Error('"std. errors:" not found');
       const ses = sl.replace(/std\.\s*errors:/, '').trim()
@@ -650,12 +722,11 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
       const weights = coeffs.map(c => (c / total) * 100);
       const sesPct  = ses.map(s => s * 100);
       const zScores = coeffs.map((c, i) => ses[i] > 0 ? c / ses[i] : 0);
-
-      /* outgroups as comma-separated string */
-      const outgroups = rightPops.join(', ');
-      return { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups };
+      return { target, sources, weights, sesPct, zScores, pValue, chisq,
+               outgroups: rightPops.join(', ') };
     }
 
+    /* ── Summary format parser ── */
     function parseSummary(text) {
       const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
       const tl = lines.find(l => l.startsWith('Target:'));
@@ -672,8 +743,7 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
 
       const pValue = parseFloat(pvl.replace('P value:', '').trim());
       const chisq  = parseFloat(chl.replace('chisq:', '').trim());
-
-      const rgl = lines.find(l => l.startsWith('Rights:'));
+      const rgl    = lines.find(l => l.startsWith('Rights:'));
       const outgroups = rgl ? rgl.replace('Rights:', '').trim() : '';
 
       const sources = [], weights = [], sesPct = [], zScores = [];
@@ -725,10 +795,10 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
         vb.textContent = pass ? 'PASS' : 'FAIL';
         vb.className   = 'verdict-badge ' + (pass ? 'pass' : 'fail');
 
-        /* Target */
+        /* Target heading */
         document.getElementById('cardTarget').textContent = target;
 
-        /* Stat line */
+        /* Stats line */
         const pd = pValue < 0.0001
           ? pValue.toExponential(4)
           : parseFloat(pValue.toPrecision(7)).toString();
@@ -742,12 +812,16 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
           i < pal.length ? pal[i] : `hsl(${Math.round(360*i/sources.length)},62%,52%)`
         );
 
-        /* ── Donut chart ──
-           KEY FIX: layout.padding = CFG.donutHoverOff
-           Chart.js reserves this many px inside the canvas before drawing,
-           so when a slice expands on hover it grows into that reserved space
-           rather than beyond the canvas edge → no clipping at any boundary.
-           hoverBackgroundColor = same colors → no colour shift on hover.      */
+        /* ── Donut chart ──────────────────────────────────────────────
+           layout.padding = CFG.donutHoverOff:
+             Chart.js reserves this many pixels inside the canvas
+             before drawing. Hovered slices expand INTO this space,
+             never past the canvas edge → no clipping at any boundary.
+
+           hoverBackgroundColor = colors → no colour change on hover.
+
+           circumference: clockwise → +360, anti-clockwise → -360
+           rotation: start angle in degrees (-90 = 12 o'clock)        */
         const ctx = document.getElementById('donutChart').getContext('2d');
         if (chartObj) chartObj.destroy();
         chartObj = new Chart(ctx, {
@@ -757,7 +831,7 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
             datasets: [{
               data:                 weights,
               backgroundColor:      colors,
-              hoverBackgroundColor: colors,        /* ← no color change on hover */
+              hoverBackgroundColor: colors,        /* no colour shift on hover */
               borderColor:          CFG.donutBorderC,
               hoverBorderColor:     CFG.donutBorderC,
               borderWidth:          CFG.donutBorderW,
@@ -766,10 +840,12 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
             }]
           },
           options: {
-            responsive:  true,
-            cutout:      CFG.donutCutout,
+            responsive:    true,
+            cutout:        CFG.donutCutout,
+            rotation:      CFG.donutStartAngle,
+            circumference: CFG.donutClockwise ? 360 : -360,
             layout: {
-              padding:   CFG.donutHoverOff   /* ← reserve hover expansion room */
+              padding: CFG.donutHoverOff   /* room for hover expansion */
             },
             plugins: {
               legend: { display: false },
@@ -781,18 +857,20 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
           }
         });
 
-        /* Sources rows */
+        /* ── Sources table rows ── */
         let srcRows = '';
         sources.forEach((pop, i) => {
           const z   = zScores[i];
           const zCl = zClass(z);
           srcRows += `<tr>
-            <td class="col-source">
+            <td class="td-swatch">
               <span class="swatch" style="background:${colors[i]}"></span>
-              <span class="pop-name">${pop}</span>
             </td>
-            <td class="col-coeff coeff-val">${weights[i].toFixed(1)}% ± ${sesPct[i].toFixed(2)}%</td>
-            <td class="col-z z-cell ${zCl}">
+            <td class="td-source">
+              <span class="pop-name">${softBreak(pop)}</span>
+            </td>
+            <td class="td-coeff coeff-val">${weights[i].toFixed(1)}% ± ${sesPct[i].toFixed(2)}%</td>
+            <td class="td-z z-cell ${zCl}">
               <span class="z-inner">
                 <span class="z-label">Z:</span>
                 <span class="z-num">${z.toFixed(2)}</span>
@@ -802,7 +880,7 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
         });
         document.getElementById('sourcesBody').innerHTML = srcRows;
 
-        /* Outgroups — single comma-separated cell */
+        /* ── Outgroups ── */
         const ogBox = document.getElementById('outgroupsBox');
         const ogTd  = document.getElementById('outgroupsTd');
         if (outgroups) {
@@ -812,7 +890,7 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
           ogBox.style.display = 'none';
         }
 
-        /* Watermark */
+        /* ── Watermark ── */
         const tg = document.getElementById('telegramInput').value.trim();
         const xw = document.getElementById('xInput').value.trim();
         const dc = document.getElementById('discordInput').value.trim();
@@ -837,7 +915,6 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
 
     function downloadImage() {
       const card = document.getElementById('card');
-      /* Temporarily clip for a clean screenshot, then restore */
       card.style.overflow = 'hidden';
       html2canvas(card, { scale: 3, backgroundColor: '#ffffff', useCORS: true })
         .then(canvas => {
