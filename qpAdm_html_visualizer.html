@@ -37,12 +37,13 @@
 
     /* ═══ CARD ═══ */
     #card {
-      width: 100%; max-width: 1000px; aspect-ratio: 16 / 10.5;
-      background: #fff; border-radius: 4px; display: none;
+      width: 100%; max-width: 1000px;
+      /* aspect-ratio set from CARD.aspectRatio in JS */
+      border-radius: 4px; display: none;
       position: relative; overflow: visible;
       box-shadow: 0 20px 70px rgba(0,0,0,0.6);
     }
-    .card-bg { position: absolute; inset: 0; background: #fff; border-radius: 4px; z-index: 0; pointer-events: none; }
+    .card-bg { position: absolute; inset: 0; border-radius: 4px; z-index: 0; pointer-events: none; }
 
     /* ═══ HEADER ═══ */
     .card-header { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; z-index: 2; }
@@ -59,35 +60,22 @@
     /* ═══ INFO PANEL ═══ */
     .info-col { position: absolute; display: flex; flex-direction: column; justify-content: center; gap: 10px; min-width: 0; z-index: 2; }
 
-    /* ═══ TABLES — structural skeleton only; colours/borders from TABLE_STYLE ═══ */
+    /* ═══ TABLES — structural skeleton; colours/borders from TABLE_STYLE ═══ */
     .data-box   { overflow: hidden; }
     .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
     /* ── Column width control (sources table) ── */
-    .col-sw-col {
-      width: 40px;          /* hard clamp for swatch */
-    }
+    .col-sw-col   { width: 40px;  }
+    .col-name-col { width: auto;  }
+    .col-data-col { width: 220px; }
 
-    .col-name-col {
-      width: auto;          /* takes remaining space */
-    }
-
-    .col-data-col {
-      width: 220px;         /* fixed numeric column */
-    }
-
-    /* Columns */
+    /* Column base styles */
     .col-sw   { vertical-align: middle; text-align: left; }
     .col-name { vertical-align: middle; overflow: visible; white-space: normal; word-break: normal; overflow-wrap: normal; }
     .col-data { vertical-align: middle; }
 
     .swatch   { display: inline-block; vertical-align: middle; flex-shrink: 0; }
     .pop-name { vertical-align: middle; hyphens: none; line-height: 1.35; }
-
-    /* Z-score colour tiers */
-    .z-good { color: #16a34a; }
-    .z-mid  { color: #ca8a04; }
-    .z-bad  { color: #dc2626; }
 
     /* Outgroups */
     .outgroups-td { white-space: normal; word-break: break-word; overflow-wrap: break-word; }
@@ -110,19 +98,19 @@ RAW LOG: full qpAdm output (left pops / right pops / best coefficients / std. er
 SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 | chisq: 8.04 | Rights: …"></textarea>
   <div class="controls-row">
     <button class="btn btn-primary" onclick="parseAndDraw()">Generate</button>
-      <select id="paletteSelect">
-        <option value="0">qpAdm Classic (blue–green–red)</option>
-        <option value="1">ColorBrewer Set1</option>
-        <option value="2">Tableau (analytics)</option>
-        <option value="3">Dark2 (high contrast)</option>
-        <option value="4">Earth / Archaeogenetics</option>
-        <option value="5">Soft Modern</option>
-        <option value="6">Greyscale High Contrast</option>
-        <option value="7">Greyscale Journal</option>
-        <option value="8">Greyscale Soft</option>
-        <option value="9">Blue Scale</option>
-        <option value="10">Green Scale</option>
-      </select>
+    <select id="paletteSelect">
+      <option value="0">qpAdm Classic (blue–green–red)</option>
+      <option value="1">ColorBrewer Set1</option>
+      <option value="2">Tableau (analytics)</option>
+      <option value="3">Dark2 (high contrast)</option>
+      <option value="4">Earth / Archaeogenetics</option>
+      <option value="5">Soft Modern</option>
+      <option value="6">Greyscale High Contrast</option>
+      <option value="7">Greyscale Journal</option>
+      <option value="8">Greyscale Soft</option>
+      <option value="9">Blue Scale</option>
+      <option value="10">Green Scale</option>
+    </select>
     <span id="formatBadge"></span>
     <button class="btn btn-dl" id="downloadBtn" onclick="downloadImage()">↓ Download PNG</button>
   </div>
@@ -135,7 +123,7 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
 
 <!-- CARD -->
 <div id="card">
-  <div class="card-bg"></div>
+  <div class="card-bg" id="cardBg"></div>
   <div class="card-header" id="cardHeader">
     <div id="cardTarget"></div>
     <div id="statLine"></div>
@@ -155,7 +143,7 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
       </table>
     </div>
     <div class="data-box" id="outgroupsBox" style="display:none;">
-      <table class="data-table outgroups-table" id="outgroupsTable">
+      <table class="data-table" id="outgroupsTable">
         <thead><tr><th id="hdrOutgroups"></th></tr></thead>
         <tbody><tr><td class="outgroups-td" id="outgroupsTd"></td></tr></tbody>
       </table>
@@ -166,33 +154,29 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
 
 <script>
 /* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  CARD  —  global card appearance                                         ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const CARD = {
+  bgColor:     '#ffffff',    /* card background colour                        */
+  aspectRatio: '16 / 10.5', /* CSS aspect-ratio string                       */
+};
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  LAYOUT  —  positions as % of card width (X) or card height (Y)         ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 const LAYOUT = {
-  donutCenterX:   23,   /* % card W — donut centre horizontal */
-  donutCenterY:   55,   /* % card H — donut centre vertical   */
-  donutDiameter:  43,   /* % card W — donut diameter          */
+  donutCenterX:   23,
+  donutCenterY:   55,
+  donutDiameter:  43,
 
-  panelLeft:       48,  /* % card W — info panel left edge    */
-  panelTop:        18,  /* % card H — info panel top edge     */
-  panelRight:       2,  /* % card W — info panel right inset  */
-  panelBottom:      3,  /* % card H — info panel bottom inset */
+  panelLeft:       48,
+  panelTop:        18,
+  panelRight:       2,
+  panelBottom:      3,
 };
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  VERDICT BADGE — position, size, colours                                ║
-   ║                                                                          ║
-   ║  anchorX / anchorY  position of badge anchor as % of card W / H         ║
-   ║  anchor             which corner sits at anchorX/Y:                     ║
-   ║                     'top-right' 'top-left' 'top-center'                ║
-   ║                     'bottom-right' 'bottom-left' 'bottom-center'       ║
-   ║  minWidth / minHeight  minimum badge size in px  (0 = auto)            ║
-   ║  paddingV / paddingH   inner padding px                                 ║
-   ║  textAlign          text alignment inside badge                         ║
-   ║                                                                          ║
-   ║  COLOURS (replaces the old CSS .pass / .fail rules):                    ║
-   ║  passBg / passText  background + text colour when PASS                  ║
-   ║  failBg / failText  background + text colour when FAIL                  ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 const VERDICT_POS = {
   anchorX:    98,
@@ -204,38 +188,59 @@ const VERDICT_POS = {
   paddingH:   8,
   textAlign:  'center',
 
-  /* ── badge colours — edit freely ── */
-  /* STRONG PASS */
   passBg:     '#f3fefd',
   passText:   '#3a9063',
 
-  /* WEAK PASS (yellow, restrained, scientific) */
   weakBg:     '#fefce8',
   weakText:   '#ca8a04',
 
-  /* FAIL */
   failBg:     '#FBE9E9',
   failText:   '#dc2626',
 };
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
-   ║  TABLE STYLE  —  borders, backgrounds for both tables                   ║
+   ║  VERDICT THRESHOLDS — tune without touching render logic                ║
    ║                                                                          ║
-   ║  boxBorderWidth      outer box border thickness  e.g. '1.5px'           ║
-   ║  boxBorderColor      outer box border colour                             ║
-   ║  boxBorderRadius     outer box corner radius                             ║
+   ║  pValueFail      p  < this  → FAIL                                      ║
+   ║  minZFail        |Z| < this → FAIL  (uses absolute value — negative Z   ║
+   ║                               from overfit models is caught correctly)  ║
+   ║  minWeightFail   any weight < this % → FAIL  (catches negative weights) ║
+   ║  maxRelSEFail    SE/weight > this → FAIL                                ║
+   ║  minWtForSE      components < this % are SKIPPED for SE check           ║
+   ║                  (prevents Infinity from tiny-but-legitimate components) ║
    ║                                                                          ║
-   ║  headerBg            header row background colour                       ║
-   ║  headerBorderWidth   line beneath header row                             ║
-   ║  headerBorderColor   colour of that line                                 ║
-   ║                                                                          ║
-   ║  rowBorderWidth      separator between body rows                        ║
-   ║  rowBorderColor      colour of row separators                           ║
-   ║                                                                          ║
-   ║  cellBg              default body cell background  ('transparent' = off)║
-   ║  evenRowBg           override bg for even-indexed rows (0-based)        ║
-   ║  oddRowBg            override bg for odd-indexed rows                   ║
-   ║    set evenRowBg / oddRowBg to 'transparent' to disable zebra striping  ║
+   ║  STRONG PASS — all three must hold:                                     ║
+   ║  minZStrong      all |Z| ≥ this                                          ║
+   ║  maxRelSEStrong  SE/weight ≤ this                                        ║
+   ║  maxSourcesStrong  number of sources ≤ this                             ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const VERDICT_CFG = {
+  pValueFail:        0.05,
+  minZFail:          2.0,
+  minWeightFail:    -5,
+  maxRelSEFail:      1.5,
+  minWtForSE:        2,      /* % — skip SE ratio check below this weight    */
+
+  minZStrong:        3.0,
+  maxRelSEStrong:    0.5,
+  maxSourcesStrong:  4,
+};
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  Z-SCORE TIER COLOURS  —  fully configurable from JS                    ║
+   ║  Applied via inline style; overrides any CSS .z-good / .z-mid / .z-bad  ║
+   ║  zGood  |Z| ≥ CFG.zGoodMin                                              ║
+   ║  zMid   CFG.zMidMin ≤ |Z| < CFG.zGoodMin                               ║
+   ║  zBad   |Z| < CFG.zMidMin                                               ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const Z_COLORS = {
+  zGood: '#16a34a',
+  zMid:  '#ca8a04',
+  zBad:  '#dc2626',
+};
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  TABLE STYLE                                                             ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 const TABLE_STYLE = {
   boxBorderWidth:    '1.5px',
@@ -249,9 +254,9 @@ const TABLE_STYLE = {
   rowBorderWidth:    '1px',
   rowBorderColor:    '#e5e7eb',
 
-  cellBg:            'transparent',  /* base cell bg */
-  evenRowBg:         'transparent',  /* even rows — set a colour for zebra */
-  oddRowBg:          'transparent',  /* odd rows  */
+  cellBg:     'transparent',
+  evenRowBg:  'transparent',
+  oddRowBg:   'transparent',
 };
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
@@ -279,15 +284,15 @@ const SWATCH = {
 };
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
-   ║  TYPOGRAPHY  —  every text element on the output card                   ║
+   ║  TYPOGRAPHY                                                              ║
    ║                                                                          ║
-   ║  Keys in every section:                                                  ║
-   ║    font / fontSize / fontWeight / fontStyle / color                     ║
-   ║    letterSpacing / lineHeight / align                                   ║
+   ║  NOTE: 'Cascadia Code' and 'Inter' are not loaded from Google Fonts     ║
+   ║  and will fall back to system fonts. To load them, add to <head>:       ║
+   ║    Cascadia Code → no Google Fonts equivalent; use 'Roboto Mono'        ║
+   ║    Inter → https://fonts.googleapis.com/css2?family=Inter               ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 const TYPOGRAPHY = {
 
-  /* ── Population name heading ── */
   target: {
     font:          'Roboto, sans-serif',
     fontSize:      'clamp(40px, 4.5vw, 60px)',
@@ -299,7 +304,6 @@ const TYPOGRAPHY = {
     align:         'center',
   },
 
-  /* ── χ² / p-value line ── */
   stat: {
     font:          'Cascadia Code, sans-serif',
     fontSize:      'clamp(18px, 2.0vw, 30px)',
@@ -312,24 +316,20 @@ const TYPOGRAPHY = {
     marginTop:     '2px',
   },
 
-  /* ── Header area padding ── */
   headerPadding: {
     top:    '10px',
     sides:  '24px',
     bottom: '0px',
   },
 
-  /* ── PASS / FAIL text style (colours live in VERDICT_POS above) ── */
   verdict: {
-    font: 'Inter, sans-serif',
-    fontSize: 'clamp(10px, 1.9vw, 18px)',
-    fontWeight: 800,
-    fontStyle: 'normal',
+    font:          'Inter, sans-serif',
+    fontSize:      'clamp(10px, 1.9vw, 18px)',
+    fontWeight:    800,
+    fontStyle:     'normal',
     letterSpacing: '0.14em',
   },
 
-
-  /* ── Sources table: merged header ── */
   sourcesHeader: {
     font:          'Roboto, sans-serif',
     fontSize:      '12px',
@@ -343,7 +343,6 @@ const TYPOGRAPHY = {
     textTransform: 'uppercase',
   },
 
-  /* ── Source name cell ── */
   sourcesName: {
     font:          'Roboto, sans-serif',
     fontSize:      '17px',
@@ -355,7 +354,6 @@ const TYPOGRAPHY = {
     align:         'left',
   },
 
-  /* ── Coeff ± SE portion ── */
   sourcesCoeff: {
     font:          'Roboto, sans-serif',
     fontSize:      '17px',
@@ -366,40 +364,32 @@ const TYPOGRAPHY = {
     align:         'left',
   },
 
-  /* ── Z-score portion ──
-     zPrefix      text before the number  e.g. 'Z: '
-     zSepPx       px gap between coeff block and opening paren  ← NEW
-     zGap         gap between "Z:" and the number (kept for compatibility)  */
+  /* zSepPx   — px gap between coeff block and the (Z: …) bracket
+     zPrefix  — text inside the bracket before the number
+     zGap     — kept for API compatibility; not used in rendering            */
   sourcesZ: {
     font:          'Roboto, sans-serif',
     fontSize:      '15px',
     fontWeight:    700,
     fontStyle:     'normal',
     letterSpacing: '0',
-    zPrefix:       'Z:\u2009',   /* thin-space after colon */
-    zSepPx:        8,            /* px gap between coeff value and (Z: …) bracket */
-    zGap:          '3px',        /* kept — no longer used in rendering but preserved */
+    zPrefix:       'Z:\u2009',
+    zSepPx:        8,
+    zGap:          '3px',
   },
 
-  /* ── Colon separator (": ") between name and data columns ── */
   sourcesColon: {
     colonText:   ': ',
     colonFont:   'Roboto, sans-serif',
     colonColor:  '#111111',
   },
 
-  /* ── Per-row overrides ──────────────────────────────────────────────────
-     { index: N, <prefixed key>: value }
-     name*   nameFont nameFontSize nameFontWeight nameFontStyle
-             nameColor nameLetterSpacing nameLineHeight nameAlign
-     coeff*  coeffFont coeffFontSize coeffFontWeight coeffFontStyle
-             coeffColor coeffLetterSpacing coeffAlign
-     z*      zFont zFontSize zFontWeight zFontStyle zLetterSpacing zGap      */
+  /* Per-row overrides — { index: N, nameColor: '…', coeffFontWeight: 700, … }
+     Valid prefixes: name* | coeff* | z*                                     */
   sourcesRowOverrides: [
     // { index: 0, nameColor: '#e63946' },
   ],
 
-  /* ── Outgroups header ── */
   outgroupsHeader: {
     font:          'Roboto, sans-serif',
     fontSize:      '12px',
@@ -413,7 +403,6 @@ const TYPOGRAPHY = {
     textTransform: 'uppercase',
   },
 
-  /* ── Outgroups data cell ── */
   outgroupsCell: {
     font:          'Roboto, sans-serif',
     fontSize:      '15px',
@@ -425,7 +414,6 @@ const TYPOGRAPHY = {
     align:         'left',
   },
 
-  /* ── Watermark ── */
   watermark: {
     font:          'Roboto, sans-serif',
     fontSize:      '9px',
@@ -436,50 +424,37 @@ const TYPOGRAPHY = {
   },
 };
 
-/* ══ COLOR PALETTES (CAPPED AT 6 COMPONENTS) ══ */
-/* ══ COLOR PALETTES (CURATED, ≤6 COMPONENTS) ══ */
+/* ══ COLOR PALETTES (curated, ≤6 components) ═══════════════════════════════ */
 const colorPalettes = [
-
   /* 0 — qpAdm Classic (blue / green / red) */
   ['#4c72b0', '#55a868', '#c44e52', '#8172b2', '#ccb974', '#64b5cd'],
-
   /* 1 — ColorBrewer Set1 (high contrast, canonical) */
   ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#a65628'],
-
   /* 2 — Tableau 10 (trimmed, analytics standard) */
   ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'],
-
   /* 3 — Dark2 (strong separation, presentations) */
   ['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#a6761d'],
-
   /* 4 — Archaeogenetics / Earth tones */
   ['#5b8c5a', '#4c6a92', '#c97c5d', '#b1a44c', '#7a4a6e', '#6b705c'],
-
-  /* 5 — Soft modern (low saturation, papers) */
+  /* 5 — Soft Modern (low saturation, papers) */
   ['#457b9d', '#2a9d8f', '#e63946', '#f4a261', '#264653', '#b5838d'],
-
-  /* 6 — Greyscale (high contrast, print-safe) */
+  /* 6 — Greyscale High Contrast (print-safe) */
   ['#111111', '#2f2f2f', '#555555', '#7a7a7a', '#a0a0a0', '#cfcfcf'],
-
   /* 7 — Greyscale (balanced, journal figures) */
   ['#1a1a1a', '#3a3a3a', '#5a5a5a', '#7a7a7a', '#9a9a9a', '#bababa'],
-
   /* 8 — Greyscale (soft, background-friendly) */
   ['#2b2b2b', '#4b4b4b', '#6b6b6b', '#8b8b8b', '#ababab', '#d0d0d0'],
-
   /* 9 — Blue-scale (population structure friendly) */
   ['#08306b', '#08519c', '#2171b5', '#4292c6', '#6baed6', '#9ecae1'],
-
   /* 10 — Green-scale (ASI/AASI-heavy models) */
   ['#00441b', '#006d2c', '#238b45', '#41ab5d', '#74c476', '#a1d99b'],
-
 ];
 
-
-
+/* ══ STATE ══════════════════════════════════════════════════════════════════ */
 let chartObj = null;
 
-/* ── Apply TYPOGRAPHY section to element ── */
+/* ══ UTILITIES ══════════════════════════════════════════════════════════════ */
+
 function applyT(el, t) {
   if (!el || !t) return;
   if (t.font)          el.style.fontFamily    = t.font;
@@ -492,7 +467,6 @@ function applyT(el, t) {
   if (t.align)         el.style.textAlign     = t.align;
 }
 
-/* ── Apply TABLE_STYLE to a .data-box + its table ── */
 function applyTableStyle(boxEl) {
   if (!boxEl) return;
   const ts = TABLE_STYLE;
@@ -500,7 +474,6 @@ function applyTableStyle(boxEl) {
   boxEl.style.borderRadius = ts.boxBorderRadius;
 }
 
-/* ── Apply LAYOUT ── */
 function applyLayout() {
   const card = document.getElementById('card');
   const wrap = document.getElementById('donutWrap');
@@ -509,82 +482,72 @@ function applyLayout() {
   const d  = (LAYOUT.donutDiameter / 100) * cW;
   const cx = (LAYOUT.donutCenterX  / 100) * cW;
   const cy = (LAYOUT.donutCenterY  / 100) * cH;
-  wrap.style.width  = d + 'px';  wrap.style.height = d + 'px';
-  wrap.style.left   = (cx - d / 2) + 'px';  wrap.style.top = (cy - d / 2) + 'px';
+  wrap.style.width  = d + 'px'; wrap.style.height = d + 'px';
+  wrap.style.left   = (cx - d / 2) + 'px';
+  wrap.style.top    = (cy - d / 2) + 'px';
   info.style.left   = ((LAYOUT.panelLeft   / 100) * cW) + 'px';
   info.style.top    = ((LAYOUT.panelTop    / 100) * cH) + 'px';
   info.style.right  = ((LAYOUT.panelRight  / 100) * cW) + 'px';
   info.style.bottom = ((LAYOUT.panelBottom / 100) * cH) + 'px';
 }
 
-/* ── Apply VERDICT_POS geometry & positioning ONLY ── */
-function applyVerdictPos(vb, pass) {
+/* 2-pass: apply styles → measure → position */
+function applyVerdictPos(vb, verdictType) {
   const card = document.getElementById('card');
-  const cW = card.offsetWidth;
-  const cH = card.offsetHeight;
+  const cW = card.offsetWidth, cH = card.offsetHeight;
   const vp = VERDICT_POS;
-  const vt = TYPOGRAPHY.verdict;
 
-  /* Typography */
-  applyT(vb, vt);
+  applyT(vb, TYPOGRAPHY.verdict);
 
-  /* Geometry */
+  switch (verdictType) {
+    case 'pass': vb.style.background = vp.passBg; vb.style.color = vp.passText; break;
+    case 'weak': vb.style.background = vp.weakBg; vb.style.color = vp.weakText; break;
+    default:     vb.style.background = vp.failBg; vb.style.color = vp.failText;
+  }
+
   vb.style.padding   = `${vp.paddingV}px ${vp.paddingH}px`;
   vb.style.textAlign = vp.textAlign;
-
   if (vp.minWidth  > 0) vb.style.minWidth  = vp.minWidth  + 'px';
   if (vp.minHeight > 0) vb.style.minHeight = vp.minHeight + 'px';
 
-  /* Measure badge */
+  /* Pass 1: measure */
   vb.style.visibility = 'hidden';
-  vb.style.left = '0';
-  vb.style.top  = '0';
-  vb.style.right = '';
-  vb.style.bottom = '';
-
-  const bW = vb.offsetWidth;
-  const bH = vb.offsetHeight;
-
+  vb.style.left = '0'; vb.style.top = '0';
+  vb.style.right = ''; vb.style.bottom = '';
+  const bW = vb.offsetWidth, bH = vb.offsetHeight;
   vb.style.visibility = '';
 
-  /* Anchor math */
+  /* Pass 2: position */
   const ax = (vp.anchorX / 100) * cW;
   const ay = (vp.anchorY / 100) * cH;
-
   const a  = vp.anchor || 'top-right';
   const hP = a.includes('left') ? 0 : a.includes('right') ? 1 : 0.5;
   const vP = a.includes('bottom') ? 1 : 0;
-
   vb.style.left   = (ax - hP * bW) + 'px';
   vb.style.top    = (ay - vP * bH) + 'px';
+  vb.style.right  = '';
+  vb.style.bottom = '';
 }
 
-/* ── Update source swatches without re-render ── */
+/* ── Update swatches + donut on palette change (no full re-render) ── */
 function updateSourceColors(pal) {
-  const swatches = document.querySelectorAll('#sourcesBody .swatch');
-
-  swatches.forEach((sw, i) => {
-    sw.style.background =
-      i < pal.length ? pal[i] : '#cccccc';
+  document.querySelectorAll('#sourcesBody .swatch').forEach((sw, i) => {
+    sw.style.background = i < pal.length ? pal[i] : '#cccccc';
   });
 }
 
-
-/* ── Update source swatches + table colors without re-render ── */
-function updateSourceColors(pal) {
-  const swatches = document.querySelectorAll('#sourcesBody .swatch');
-
-  swatches.forEach((sw, i) => {
-    sw.style.background =
-      i < pal.length ? pal[i] : '#cccccc';
-  });
-}
-
-
-/* ── Soft-break long names ── */
 function softBreak(s) { return s.replace(/([_.\-])/g, '$1<wbr>'); }
 
-/* ── Merge row override with defaults ── */
+/* ── Z-score colour resolved from Z_COLORS config (not CSS class) ── */
+function zColor(z) {
+  /* BUG FIX: use Math.abs so negative Z-scores (overfit models) are
+     classified correctly — a Z of -5 is a strong signal, not z-bad. */
+  const absZ = Math.abs(z);
+  return absZ >= CFG.zGoodMin ? Z_COLORS.zGood
+       : absZ >= CFG.zMidMin  ? Z_COLORS.zMid
+       : Z_COLORS.zBad;
+}
+
 function mergeRow(i) {
   const base = {
     nameFont:           TYPOGRAPHY.sourcesName.font,
@@ -613,6 +576,39 @@ function mergeRow(i) {
   return ov ? Object.assign({}, base, ov) : base;
 }
 
+/* ── Verdict logic — reads from VERDICT_CFG, not hardcoded ── */
+function resolveVerdict(weights, sesPct, zScores, pValue) {
+  const c = VERDICT_CFG;
+
+  const minAbsZ   = Math.min(...zScores.map(z => Math.abs(z)));
+  const minWeight = Math.min(...weights);
+
+  /* BUG FIX: skip SE ratio check for components below minWtForSE %.
+     Without this, a 0.8% legitimate component (weight ≤ 1) produces
+     Infinity which always triggers FAIL — incorrect behaviour.         */
+  const relSEs = sesPct
+    .map((se, i) => weights[i] >= c.minWtForSE ? se / weights[i] : null)
+    .filter(v => v !== null);
+  const maxRelSE = relSEs.length > 0 ? Math.max(...relSEs) : 0;
+
+  if (
+    pValue    <  c.pValueFail    ||
+    minAbsZ   <  c.minZFail      ||
+    minWeight <  c.minWeightFail ||
+    maxRelSE  >  c.maxRelSEFail
+  ) return 'fail';
+
+  if (
+    minAbsZ        >= c.minZStrong       &&
+    maxRelSE       <= c.maxRelSEStrong   &&
+    weights.length <= c.maxSourcesStrong
+  ) return 'pass';
+
+  return 'weak';
+}
+
+/* ══ PARSERS ════════════════════════════════════════════════════════════════ */
+
 function isRawFormat(t) { return /left pops\s*:/i.test(t) && /right pops\s*:/i.test(t); }
 
 function parseRaw(text) {
@@ -627,6 +623,7 @@ function parseRaw(text) {
   }
   if (lp.length < 2) throw new Error('Need target + ≥1 source in left pops');
   const target = lp[0], sources = lp.slice(1);
+
   const ri = lines.findIndex(l => /^\s*right pops\s*:/i.test(l));
   const rp = [];
   if (ri >= 0) {
@@ -636,6 +633,7 @@ function parseRaw(text) {
       const m = l.match(/^(\S+)\s+\d+/); if (m) rp.push(m[1]);
     }
   }
+
   let pValue = NaN, chisq = NaN;
   const ci = lines.findIndex(l => /^\s*codimension\s+1\b/.test(l));
   if (ci >= 0) {
@@ -651,14 +649,17 @@ function parseRaw(text) {
     }
   }
   if (isNaN(pValue)) throw new Error('Could not parse p-value');
+
   const cl = lines.find(l => /best coefficients:/.test(l));
   if (!cl) throw new Error('"best coefficients:" not found');
   const coeffs = cl.replace('best coefficients:','').trim().split(/\s+/).map(Number).filter(v=>!isNaN(v));
   if (coeffs.length !== sources.length) throw new Error(`Coefficients (${coeffs.length}) ≠ sources (${sources.length})`);
+
   const sl = lines.find(l => /std\.\s*errors:/.test(l));
   if (!sl) throw new Error('"std. errors:" not found');
   const ses = sl.replace(/std\.\s*errors:/,'').trim().split(/\s+/).map(Number).filter(v=>!isNaN(v));
   if (ses.length !== sources.length) throw new Error(`SEs (${ses.length}) ≠ sources (${sources.length})`);
+
   const tot = coeffs.reduce((a,b)=>a+b,0);
   return { target, sources,
     weights: coeffs.map(c=>(c/tot)*100), sesPct: ses.map(s=>s*100),
@@ -691,9 +692,7 @@ function parseSummary(text) {
   return { target, sources, weights: weights.map(w=>(w/tot)*100), sesPct, zScores, pValue, chisq, outgroups };
 }
 
-function zClass(z) { return z >= CFG.zGoodMin ? 'z-good' : (z >= CFG.zMidMin ? 'z-mid' : 'z-bad'); }
-
-/* ═══ MAIN RENDER ═══ */
+/* ══ MAIN RENDER ════════════════════════════════════════════════════════════ */
 function parseAndDraw() {
   const text = document.getElementById('qpadmText').value.trim();
   document.getElementById('card').style.display        = 'none';
@@ -703,19 +702,21 @@ function parseAndDraw() {
     let parsed, fmtTxt, fmtCls;
     if (isRawFormat(text)) { parsed = parseRaw(text);     fmtTxt = '⚙ Raw log'; fmtCls = 'raw'; }
     else                   { parsed = parseSummary(text); fmtTxt = '✓ Summary'; fmtCls = ''; }
-    const badge = document.getElementById('formatBadge');
-    badge.textContent = fmtTxt; badge.className = fmtCls; badge.style.display = 'inline-block';
+
+    const fmtBadge = document.getElementById('formatBadge');
+    fmtBadge.textContent = fmtTxt; fmtBadge.className = fmtCls; fmtBadge.style.display = 'inline-block';
 
     const { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups } = parsed;
 
-    /* ── Complexity warning ── */
-    const isOverComplex = sources.length > 6;
-    if (isOverComplex) {
-      console.warn(
-        'qpAdm model uses >6 sources — interpretability reduced.'
-      );
+    if (sources.length > 6) {
+      console.warn('qpAdm model uses >6 sources — interpretability reduced. Excess sources rendered in grey (#cccccc).');
     }
 
+    /* ── Card ── */
+    const cardEl = document.getElementById('card');
+    cardEl.style.background  = CARD.bgColor;
+    cardEl.style.aspectRatio = CARD.aspectRatio;
+    document.getElementById('cardBg').style.background = CARD.bgColor;
 
     /* ── Header padding ── */
     const hp = TYPOGRAPHY.headerPadding;
@@ -733,95 +734,28 @@ function parseAndDraw() {
     applyT(slEl, TYPOGRAPHY.stat);
     slEl.style.marginTop = TYPOGRAPHY.stat.marginTop || '2px';
 
-    /* ── Show card (needed for measurements) ── */
-    document.getElementById('card').style.display = 'block';
+    /* ── Show card (needed before any measurements) ── */
+    cardEl.style.display = 'block';
 
-    /* ── Verdict badge ── */
-    /* ── Advanced verdict logic ── */
-    const minAbsZ   = Math.min(...zScores.map(z => Math.abs(z)));
-    const minWeight = Math.min(...weights);
-    const maxRelSE  = Math.max(...sesPct.map((se, i) =>
-      weights[i] > 1 ? se / weights[i] : Infinity
-    ));
-
-    let verdictType;
-    let verdictText;
-
-    /* FAIL */
-    /* FAIL */
-    if (
-      pValue < 0.05 ||
-      minAbsZ < 2.0 ||
-      minWeight < -5 ||
-      maxRelSE > 1.5
-    ) {
-      verdictType = 'fail';
-      verdictText = 'FAIL';
-    }
-
-    /* PASS (strong) */
-    else if (
-      minAbsZ >= 3.0 &&
-      maxRelSE < 0.5 &&
-      weights.length <= 4
-    ) {
-      verdictType = 'pass';
-      verdictText = 'PASS';
-    }
-
-    /* PASS* (weak) */
-    else {
-      verdictType = 'weak';
-      verdictText = 'PASS*';
-    }
-
-
+    /* ── Verdict ── */
+    const verdictType = resolveVerdict(weights, sesPct, zScores, pValue);
+    const verdictText = { pass: 'PASS', weak: 'PASS*', fail: 'FAIL' }[verdictType];
     const vb = document.getElementById('verdictBadge');
-    vb.textContent = verdictText;
-
-    /* ── Apply verdict styling ── */
-    vb.dataset.verdict = verdictType;
-    applyT(vb, TYPOGRAPHY.verdict);
-
-    switch (verdictType) {
-      case 'pass':
-        vb.style.background = VERDICT_POS.passBg;
-        vb.style.color      = VERDICT_POS.passText;
-        applyVerdictPos(vb, true);
-        break;
-
-      case 'weak':
-        vb.style.background = VERDICT_POS.weakBg;
-        vb.style.color      = VERDICT_POS.weakText;
-        applyVerdictPos(vb, true);
-        break;
-
-      default:
-        vb.style.background = VERDICT_POS.failBg;
-        vb.style.color      = VERDICT_POS.failText;
-        applyVerdictPos(vb, false);
-    }
+    vb.textContent     = verdictText;
+    vb.dataset.verdict = verdictType;   /* stored for resize handler */
+    applyVerdictPos(vb, verdictType);
 
     /* ── Layout ── */
     applyLayout();
 
-    /* ── Table styles ── */
+    /* ── Table borders ── */
     applyTableStyle(document.getElementById('sourcesBox'));
     applyTableStyle(document.getElementById('outgroupsBox'));
 
     /* ── Colors ── */
     const pidx   = parseInt(document.getElementById('paletteSelect').value);
-    const pal    = colorPalettes[pidx];
-
-    /* ── Disable palette selection if model exceeds palette capacity ── */
-    if (sources.length > pal.length) {
-      console.warn(
-        'Palette has fewer colors than sources; extra sources rendered in grey.'
-      );
-    }
-
-    const colors = sources.map((_, i) =>   i < pal.length ? pal[i] : '#cccccc');
-
+    const pal    = colorPalettes[pidx] || colorPalettes[0];
+    const colors = sources.map((_, i) => i < pal.length ? pal[i] : '#cccccc');
 
     /* ── Donut ── */
     const ctx = document.getElementById('donutChart').getContext('2d');
@@ -849,15 +783,15 @@ function parseAndDraw() {
     });
 
     /* ══ SOURCES TABLE ══════════════════════════════════════════════════════
-       HEADER: single <th colspan="3"> spanning ALL columns (swatch+name+data)
-       so it is always centred over the full table width.
-       The swatch-column width is enforced by the first data row.
+       Header: colspan=3 → always centred over full table width.
+       Column widths enforced by <colgroup> in HTML.
        ═══════════════════════════════════════════════════════════════════════ */
-    const ts     = TABLE_STYLE;
-    const sh     = TYPOGRAPHY.sourcesHeader;
+    const ts  = TABLE_STYLE;
+    const sh  = TYPOGRAPHY.sourcesHeader;
+    const zT  = TYPOGRAPHY.sourcesZ;
+    const sc  = TYPOGRAPHY.sourcesColon;
     const swColW = (parseInt(SWATCH.width) + 16) + 'px';
 
-    /* Header: colspan=3, spans entire table — true visual centre */
     document.getElementById('sourcesHead').innerHTML = `
       <tr>
         <th colspan="3" style="
@@ -872,34 +806,29 @@ function parseAndDraw() {
         ">${sh.text}</th>
       </tr>`;
 
-    /* ── Source rows ── */
-    const zT  = TYPOGRAPHY.sourcesZ;
-    const sc  = TYPOGRAPHY.sourcesColon;
     let srcHTML = '';
-
     sources.forEach((pop, i) => {
-      const rs    = mergeRow(i);
-      const z     = zScores[i];
-      const zCl   = zClass(z);
-      const rowBg = (i % 2 === 0) ? ts.evenRowBg : ts.oddRowBg;
-      const sepBorder = `border-bottom:${ts.rowBorderWidth} solid ${ts.rowBorderColor};`;
+      const rs     = mergeRow(i);
+      const z      = zScores[i];
+      const zCol   = zColor(z);            /* from Z_COLORS config, uses Math.abs */
+      const rowBg  = (i % 2 === 0) ? ts.evenRowBg : ts.oddRowBg;
+      const cellBg = ts.cellBg !== 'transparent' ? ts.cellBg : rowBg;
 
-      /* ── Z block: (Z: 12.41) — simple inline, no grid hack ──
-         Plain inline rendering eliminates the vertical-shift artefact.  */
-      const zHtml = `<span class="${zCl}" style="
+      /* BUG FIX: skip border on last row instead of post-hoc regex.
+         The old regex only removed the border from the 3rd <td>; the
+         swatch and name cells in the last row still had it.             */
+      const isLast = i === sources.length - 1;
+      const rowBdr = isLast ? '' : `border-bottom:${ts.rowBorderWidth} solid ${ts.rowBorderColor};`;
+
+      const zHtml = `<span style="
           font-family:${rs.zFont};font-size:${rs.zFontSize};
           font-weight:${rs.zFontWeight};font-style:${rs.zFontStyle};
-          letter-spacing:${rs.zLetterSpacing};
+          letter-spacing:${rs.zLetterSpacing};color:${zCol};
           white-space:nowrap;vertical-align:baseline;
         ">(${zT.zPrefix}${z.toFixed(2)})</span>`;
 
-      /* ── zSepPx: controlled gap between coeff value and Z bracket ── */
-      const zSepHtml = `<span style="display:inline-block;width:${zT.zSepPx}px;"></span>`;
-
-      /* ── Colon separator ── */
+      const zSepHtml  = `<span style="display:inline-block;width:${zT.zSepPx}px;"></span>`;
       const colonHtml = `<span style="font-family:${sc.colonFont};color:${sc.colonColor};white-space:pre;">${sc.colonText}</span>`;
-
-      /* ── Coeff value ── */
       const coeffHtml = `<span style="
           font-family:${rs.coeffFont};font-size:${rs.coeffFontSize};
           font-weight:${rs.coeffFontWeight};font-style:${rs.coeffFontStyle};
@@ -907,43 +836,18 @@ function parseAndDraw() {
           white-space:nowrap;vertical-align:baseline;
         ">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
 
-      /* Full data cell: ": coeff ± se  [gap]  (Z: 12.41)" */
       const dataHtml = `${colonHtml}${coeffHtml}${zSepHtml}${zHtml}`;
 
       srcHTML += `<tr style="background:${rowBg};">
-        <td class="col-sw" style="
-          width:${swColW};padding:5px 0 5px 10px !important;
-          vertical-align:middle;${sepBorder}
-          background:${ts.cellBg !== 'transparent' ? ts.cellBg : rowBg};
-        ">
-          <span class="swatch" style="
-            background:${colors[i]};
-            width:${SWATCH.width};height:${SWATCH.height};
-            border-radius:${SWATCH.radius};border:${SWATCH.border};
-          "></span>
+        <td class="col-sw"   style="width:${swColW};padding:5px 0 5px 10px !important;vertical-align:middle;${rowBdr}background:${cellBg};">
+          <span class="swatch" style="background:${colors[i]};width:${SWATCH.width};height:${SWATCH.height};border-radius:${SWATCH.radius};border:${SWATCH.border};"></span>
         </td>
-        <td class="col-name" style="
-          text-align:${rs.nameAlign};padding:5px 4px !important;
-          vertical-align:middle;${sepBorder}
-          background:${ts.cellBg !== 'transparent' ? ts.cellBg : rowBg};
-        ">
-          <span class="pop-name" style="
-            font-family:${rs.nameFont};font-size:${rs.nameFontSize};
-            font-weight:${rs.nameFontWeight};font-style:${rs.nameFontStyle};
-            color:${rs.nameColor};letter-spacing:${rs.nameLetterSpacing};
-            line-height:${rs.nameLineHeight};
-          ">${softBreak(pop)}</span>
+        <td class="col-name" style="text-align:${rs.nameAlign};padding:5px 4px !important;vertical-align:middle;${rowBdr}background:${cellBg};">
+          <span class="pop-name" style="font-family:${rs.nameFont};font-size:${rs.nameFontSize};font-weight:${rs.nameFontWeight};font-style:${rs.nameFontStyle};color:${rs.nameColor};letter-spacing:${rs.nameLetterSpacing};line-height:${rs.nameLineHeight};">${softBreak(pop)}</span>
         </td>
-        <td class="col-data" style="
-          text-align:${rs.coeffAlign};white-space:nowrap;
-          padding:5px 10px;vertical-align:middle;${sepBorder}
-          background:${ts.cellBg !== 'transparent' ? ts.cellBg : rowBg};
-        ">${dataHtml}</td>
+        <td class="col-data" style="text-align:${rs.coeffAlign};white-space:nowrap;padding:5px 10px;vertical-align:middle;${rowBdr}background:${cellBg};">${dataHtml}</td>
       </tr>`;
     });
-
-    /* Remove bottom border from last row */
-    srcHTML = srcHTML.replace(/border-bottom:[^;]+;(<\/td>\s*<\/tr>\s*)$/, '$1');
     document.getElementById('sourcesBody').innerHTML = srcHTML;
 
     /* ── Outgroups ── */
@@ -956,14 +860,14 @@ function parseAndDraw() {
       ogH.textContent = ogh.text;
       applyT(ogH, ogh);
       ogH.style.textTransform = ogh.textTransform || 'uppercase';
-      ogH.style.padding    = '5px 10px';
-      ogH.style.background = ts.headerBg;
-      ogH.style.borderBottom = `${ts.headerBorderWidth} solid ${ts.headerBorderColor}`;
+      ogH.style.padding       = '5px 10px';
+      ogH.style.background    = ts.headerBg;
+      ogH.style.borderBottom  = `${ts.headerBorderWidth} solid ${ts.headerBorderColor}`;
       applyT(ogTd, ogc);
       ogTd.style.padding    = '5px 10px';
       ogTd.style.background = ts.cellBg;
-      ogTd.textContent    = outgroups;
-      ogBox.style.display = 'block';
+      ogTd.textContent      = outgroups;
+      ogBox.style.display   = 'block';
     } else {
       ogBox.style.display = 'none';
     }
@@ -985,41 +889,36 @@ function parseAndDraw() {
   } catch(e) { alert('Parse error:\n\n'+e.message); console.error(e); }
 }
 
-document.getElementById('paletteSelect')
-  .addEventListener('change', () => {
+/* ── Palette change: update donut + swatches without full re-render ── */
+document.getElementById('paletteSelect').addEventListener('change', () => {
+  if (!chartObj) return;
+  const pidx   = parseInt(document.getElementById('paletteSelect').value);
+  const pal    = colorPalettes[pidx] || colorPalettes[0];
+  const labels = chartObj.data.labels;
+  const colors = labels.map((_, i) => i < pal.length ? pal[i] : '#cccccc');
 
-    if (!chartObj) return;
+  chartObj.data.datasets[0].backgroundColor      = colors;
+  chartObj.data.datasets[0].hoverBackgroundColor = colors;
+  chartObj.update();
 
-    const pidx = parseInt(
-      document.getElementById('paletteSelect').value
-    );
-    const pal = colorPalettes[pidx];
-
-    const labels = chartObj.data.labels;
-    const colors = labels.map((_, i) =>
-      i < pal.length ? pal[i] : '#cccccc'
-    );
-
-    chartObj.data.datasets[0].backgroundColor = colors;
-    chartObj.data.datasets[0].hoverBackgroundColor = colors;
-
-    chartObj.update();
-
-    updateSourceColors(pal);
-  });
-  window.addEventListener('resize', () => {
-  if (document.getElementById('card').style.display !== 'none') {
-    applyLayout();
-    const vb   = document.getElementById('verdictBadge');
-    const pass = vb.textContent === 'PASS';
-    if (vb.textContent) applyVerdictPos(vb, pass);
-  }
+  updateSourceColors(pal);
 });
 
+/* ── Resize ──
+   BUG FIX: use vb.dataset.verdict (set during render) instead of
+   checking vb.textContent === 'PASS' — that missed 'PASS*' entirely. */
+window.addEventListener('resize', () => {
+  if (document.getElementById('card').style.display === 'none') return;
+  applyLayout();
+  const vb = document.getElementById('verdictBadge');
+  if (vb.textContent) applyVerdictPos(vb, vb.dataset.verdict || 'fail');
+});
+
+/* ── Download ── */
 function downloadImage() {
   const card = document.getElementById('card');
   card.style.overflow = 'hidden';
-  html2canvas(card, { scale: 3, backgroundColor: '#ffffff', useCORS: true })
+  html2canvas(card, { scale: 3, backgroundColor: CARD.bgColor, useCORS: true })
     .then(canvas => {
       card.style.overflow = '';
       const a = document.createElement('a');
