@@ -200,10 +200,17 @@ const VERDICT_POS = {
   textAlign:  'center',
 
   /* ── badge colours — edit freely ── */
+  /* STRONG PASS */
   passBg:     '#f3fefd',
   passText:   '#3a9063',
-  failBg:   '#f8eaea',
-  failText: '#8f2d2d',
+
+  /* WEAK PASS (yellow, restrained, scientific) */
+  weakBg:     '#fefce8',
+  weakText:   '#ca8a04',
+
+  /* FAIL */
+  failBg:     '#f8eaea',
+  failText:   '#dc2626',
 };
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
@@ -487,41 +494,69 @@ function applyLayout() {
   info.style.bottom = ((LAYOUT.panelBottom / 100) * cH) + 'px';
 }
 
-/* ── Apply VERDICT_POS to badge (2-pass: measure then position) ── */
+/* ── Apply VERDICT_POS geometry & positioning ONLY ── */
 function applyVerdictPos(vb, pass) {
   const card = document.getElementById('card');
-  const cW = card.offsetWidth, cH = card.offsetHeight;
-  const vp = VERDICT_POS, vt = TYPOGRAPHY.verdict;
+  const cW = card.offsetWidth;
+  const cH = card.offsetHeight;
+  const vp = VERDICT_POS;
+  const vt = TYPOGRAPHY.verdict;
 
   /* Typography */
   applyT(vb, vt);
-  /* Colours from VERDICT_POS (not CSS classes) */
-  vb.style.background = pass ? vp.passBg   : vp.failBg;
-  vb.style.color      = pass ? vp.passText : vp.failText;
+
   /* Geometry */
   vb.style.padding   = `${vp.paddingV}px ${vp.paddingH}px`;
   vb.style.textAlign = vp.textAlign;
+
   if (vp.minWidth  > 0) vb.style.minWidth  = vp.minWidth  + 'px';
   if (vp.minHeight > 0) vb.style.minHeight = vp.minHeight + 'px';
 
-  /* Pass 1: measure */
+  /* Measure badge */
   vb.style.visibility = 'hidden';
-  vb.style.left = '0'; vb.style.top = '0';
-  vb.style.right = ''; vb.style.bottom = '';
-  const bW = vb.offsetWidth, bH = vb.offsetHeight;
+  vb.style.left = '0';
+  vb.style.top  = '0';
+  vb.style.right = '';
+  vb.style.bottom = '';
+
+  const bW = vb.offsetWidth;
+  const bH = vb.offsetHeight;
+
   vb.style.visibility = '';
 
   /* Anchor math */
   const ax = (vp.anchorX / 100) * cW;
   const ay = (vp.anchorY / 100) * cH;
+
   const a  = vp.anchor || 'top-right';
   const hP = a.includes('left') ? 0 : a.includes('right') ? 1 : 0.5;
-  const vP = a.includes('bottom') ? 1 : (a === 'center' ? 0.5 : 0);
+  const vP = a.includes('bottom') ? 1 : 0;
+
   vb.style.left   = (ax - hP * bW) + 'px';
   vb.style.top    = (ay - vP * bH) + 'px';
-  vb.style.right  = '';
-  vb.style.bottom = '';
 }
+
+/* ── Update source swatches without re-render ── */
+function updateSourceColors(pal) {
+  const swatches = document.querySelectorAll('#sourcesBody .swatch');
+
+  swatches.forEach((sw, i) => {
+    sw.style.background =
+      i < pal.length ? pal[i] : '#cccccc';
+  });
+}
+
+
+/* ── Update source swatches + table colors without re-render ── */
+function updateSourceColors(pal) {
+  const swatches = document.querySelectorAll('#sourcesBody .swatch');
+
+  swatches.forEach((sw, i) => {
+    sw.style.background =
+      i < pal.length ? pal[i] : '#cccccc';
+  });
+}
+
 
 /* ── Soft-break long names ── */
 function softBreak(s) { return s.replace(/([_.\-])/g, '$1<wbr>'); }
@@ -651,7 +686,12 @@ function parseAndDraw() {
     const { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups } = parsed;
 
     /* ── Complexity warning ── */
-    if (sources.length > 6) {alert('Warning: Models with >6 sources are often overfitted and hard to interpret.');}
+    const isOverComplex = sources.length > 6;
+    if (isOverComplex) {
+      console.warn(
+        'qpAdm model uses >6 sources — interpretability reduced.'
+      );
+    }
 
 
     /* ── Header padding ── */
@@ -674,11 +714,70 @@ function parseAndDraw() {
     document.getElementById('card').style.display = 'block';
 
     /* ── Verdict badge ── */
-    const pass = pValue >= 0.05;
-    const vb   = document.getElementById('verdictBadge');
-    vb.textContent = pass ? 'PASS' : 'FAIL';
-    vb.className   = 'verdict-badge';   /* no .pass/.fail — colours set in JS */
-    applyVerdictPos(vb, pass);
+    /* ── Advanced verdict logic ── */
+    const minAbsZ   = Math.min(...zScores.map(z => Math.abs(z)));
+    const minWeight = Math.min(...weights);
+    const maxRelSE  = Math.max(...sesPct.map((se, i) =>
+      weights[i] > 1 ? se / weights[i] : Infinity
+    ));
+
+    let verdictType;
+    let verdictText;
+
+    /* FAIL */
+    /* FAIL */
+    if (
+      pValue < 0.05 ||
+      minAbsZ < 2.0 ||
+      minWeight < -5 ||
+      maxRelSE > 1.5
+    ) {
+      verdictType = 'fail';
+      verdictText = 'FAIL';
+    }
+
+    /* PASS (strong) */
+    else if (
+      minAbsZ >= 3.0 &&
+      maxRelSE < 0.5 &&
+      weights.length <= 4
+    ) {
+      verdictType = 'pass';
+      verdictText = 'PASS';
+    }
+
+    /* PASS* (weak) */
+    else {
+      verdictType = 'weak';
+      verdictText = 'PASS*';
+    }
+
+
+    const vb = document.getElementById('verdictBadge');
+    vb.textContent = verdictText;
+
+    /* ── Apply verdict styling ── */
+    vb.dataset.verdict = verdictType;
+    applyT(vb, TYPOGRAPHY.verdict);
+
+    switch (verdictType) {
+      case 'pass':
+        vb.style.background = VERDICT_POS.passBg;
+        vb.style.color      = VERDICT_POS.passText;
+        applyVerdictPos(vb, true);
+        break;
+
+      case 'weak':
+        vb.style.background = VERDICT_POS.weakBg;
+        vb.style.color      = VERDICT_POS.weakText;
+        applyVerdictPos(vb, true);
+        break;
+
+      default:
+        vb.style.background = VERDICT_POS.failBg;
+        vb.style.color      = VERDICT_POS.failText;
+        applyVerdictPos(vb, false);
+    }
 
     /* ── Layout ── */
     applyLayout();
@@ -693,9 +792,9 @@ function parseAndDraw() {
 
     /* ── Disable palette selection if model exceeds palette capacity ── */
     if (sources.length > pal.length) {
-      document.getElementById('paletteSelect').disabled = true;
-    } else {
-      document.getElementById('paletteSelect').disabled = false;
+      console.warn(
+        'Palette has fewer colors than sources; extra sources rendered in grey.'
+      );
     }
 
     const colors = sources.map((_, i) =>   i < pal.length ? pal[i] : '#cccccc');
@@ -863,8 +962,29 @@ function parseAndDraw() {
   } catch(e) { alert('Parse error:\n\n'+e.message); console.error(e); }
 }
 
-document.getElementById('paletteSelect').addEventListener('change', () => { if (chartObj) parseAndDraw(); });
-window.addEventListener('resize', () => {
+document.getElementById('paletteSelect')
+  .addEventListener('change', () => {
+
+    if (!chartObj) return;
+
+    const pidx = parseInt(
+      document.getElementById('paletteSelect').value
+    );
+    const pal = colorPalettes[pidx];
+
+    const labels = chartObj.data.labels;
+    const colors = labels.map((_, i) =>
+      i < pal.length ? pal[i] : '#cccccc'
+    );
+
+    chartObj.data.datasets[0].backgroundColor = colors;
+    chartObj.data.datasets[0].hoverBackgroundColor = colors;
+
+    chartObj.update();
+
+    updateSourceColors(pal);
+  });
+  window.addEventListener('resize', () => {
   if (document.getElementById('card').style.display !== 'none') {
     applyLayout();
     const vb   = document.getElementById('verdictBadge');
