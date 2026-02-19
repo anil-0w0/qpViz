@@ -168,9 +168,9 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
    ║  LAYOUT  —  positions as % of card width (X) or card height (Y)         ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 const LAYOUT = {
-  donutCenterX:   25,   /* % card W — donut centre horizontal */
+  donutCenterX:   23,   /* % card W — donut centre horizontal */
   donutCenterY:   55,   /* % card H — donut centre vertical   */
-  donutDiameter:  46,   /* % card W — donut diameter          */
+  donutDiameter:  43,   /* % card W — donut diameter          */
 
   panelLeft:       48,  /* % card W — info panel left edge    */
   panelTop:        18,  /* % card H — info panel top edge     */
@@ -204,8 +204,8 @@ const VERDICT_POS = {
   textAlign:  'center',
 
   /* ── badge colours — edit freely ── */
-  passBg:     '#dcfce7',
-  passText:   '#19763e',
+  passBg:     '#f3fefd',
+  passText:   '#3a9063',
   failBg:     '#fee2e2',
   failText:   '#b02828',
 };
@@ -314,8 +314,8 @@ const TYPOGRAPHY = {
   /* ── PASS / FAIL text style (colours live in VERDICT_POS above) ── */
   verdict: {
     font: 'Inter, sans-serif',
-    fontSize: 'clamp(14px, 1.9vw, 22px)',
-    fontWeight: 600,
+    fontSize: 'clamp(10px, 1.9vw, 18px)',
+    fontWeight: 800,
     fontStyle: 'normal',
     letterSpacing: '0.14em',
   },
