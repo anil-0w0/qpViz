@@ -111,16 +111,12 @@ SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 |
   <div class="controls-row">
     <button class="btn btn-primary" onclick="parseAndDraw()">Generate</button>
     <select id="paletteSelect">
-      <option value="0">Palette — Default</option>
-      <option value="1">Palette — Set1</option>
-      <option value="2">Palette — Dark2</option>
-      <option value="3">Palette — Pastel</option>
-      <option value="4">Palette — Tableau</option>
-      <option value="5">Palette — Paired</option>
-      <option value="6">Palette — Soft</option>
-      <option value="7">Palette — Vibrant</option>
-      <option value="8">Palette — Classic</option>
-      <option value="9">Palette — Mixed</option>
+      <option value="0">Palette — Default (≤6)</option>
+      <option value="1">Palette — Tableau (≤6)</option>
+      <option value="2">Palette — Dark2 (≤6)</option>
+      <option value="3">Palette — Soft Modern</option>
+      <option value="4">Palette — Earth</option>
+      <option value="5">Palette — Greyscale</option>
     </select>
     <span id="formatBadge"></span>
     <button class="btn btn-dl" id="downloadBtn" onclick="downloadImage()">↓ Download PNG</button>
@@ -206,8 +202,8 @@ const VERDICT_POS = {
   /* ── badge colours — edit freely ── */
   passBg:     '#f3fefd',
   passText:   '#3a9063',
-  failBg:     '#fee2e2',
-  failText:   '#b02828',
+  failBg:   '#f8eaea',
+  failText: '#8f2d2d',
 };
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
@@ -428,19 +424,28 @@ const TYPOGRAPHY = {
   },
 };
 
-/* ══ COLOR PALETTES ══ */
+/* ══ COLOR PALETTES (CAPPED AT 6 COMPONENTS) ══ */
 const colorPalettes = [
-  ["#4477aa","#ee6677","#228833","#ccbb44","#66ccee","#aa3377","#bbbbbb","#44bb99","#eedd88","#77aadd"],
-  ["#e41a1c","#377eb8","#4daf4a","#984ea3","#ff7f00","#a65628","#f781bf","#999999","#66c2a5","#fc8d62"],
-  ["#1b9e77","#d95f02","#7570b3","#e7298a","#66a61e","#e6ab02","#a6761d","#666666","#1f78b4","#b2df8a"],
-  ["#8dd3c7","#bebada","#fb8072","#80b1d3","#fdb462","#b3de69","#fccde5","#d9d9d9","#bc80bd","#ccebc5"],
-  ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf"],
-  ["#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a"],
-  ["#a8dadc","#457b9d","#e63946","#f4a261","#2a9d8f","#e9c46a","#264653","#b5838d","#6d6875","#c77dff"],
-  ["#ff595e","#ffca3a","#6a4c93","#1982c4","#8ac926","#f86624","#ea3546","#662e9b","#43bccd","#f9c80e"],
-  ["#264653","#2a9d8f","#e9c46a","#f4a261","#e76f51","#a8dadc","#457b9d","#1d3557","#e63946","#52b788"],
-  ["#66c2a5","#fc8d62","#8da0cb","#e78ac3","#a6d854","#ffd92f","#e5c494","#b3b3b3","#a6761d","#1b9e77"],
+
+  /* 0 — Default (scientific, colorblind-safe) */
+  ['#4477aa','#228833','#ee6677','#ccbb44','#66ccee','#aa3377'],
+
+  /* 1 — Tableau (clean analytics) */
+  ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b'],
+
+  /* 2 — Dark2 (strong separation) */
+  ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#a6761d'],
+
+  /* 3 — Soft modern */
+  ['#457b9d','#2a9d8f','#e63946','#f4a261','#264653','#b5838d'],
+
+  /* 4 — Earth / archaeogenetics */
+  ['#5b8c5a','#4c6a92','#c97c5d','#b1a44c','#7a4a6e','#6b705c'],
+
+  /* 5 — Greyscale (print & colorblind safe) */
+  ['#111111','#2f2f2f','#555555','#7a7a7a','#a0a0a0','#cfcfcf'],
 ];
+
 
 let chartObj = null;
 
@@ -645,6 +650,10 @@ function parseAndDraw() {
 
     const { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups } = parsed;
 
+    /* ── Complexity warning ── */
+    if (sources.length > 6) {alert('Warning: Models with >6 sources are often overfitted and hard to interpret.');}
+
+
     /* ── Header padding ── */
     const hp = TYPOGRAPHY.headerPadding;
     document.getElementById('cardHeader').style.padding = `${hp.top} ${hp.sides} ${hp.bottom} ${hp.sides}`;
@@ -681,7 +690,16 @@ function parseAndDraw() {
     /* ── Colors ── */
     const pidx   = parseInt(document.getElementById('paletteSelect').value);
     const pal    = colorPalettes[pidx];
-    const colors = sources.map((_,i) => i < pal.length ? pal[i] : `hsl(${Math.round(360*i/sources.length)},62%,52%)`);
+
+    /* ── Disable palette selection if model exceeds palette capacity ── */
+    if (sources.length > pal.length) {
+      document.getElementById('paletteSelect').disabled = true;
+    } else {
+      document.getElementById('paletteSelect').disabled = false;
+    }
+
+    const colors = sources.map((_, i) =>   i < pal.length ? pal[i] : '#cccccc');
+
 
     /* ── Donut ── */
     const ctx = document.getElementById('donutChart').getContext('2d');
