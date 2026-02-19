@@ -110,14 +110,19 @@ RAW LOG: full qpAdm output (left pops / right pops / best coefficients / std. er
 SUMMARY:  Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 | chisq: 8.04 | Rights: …"></textarea>
   <div class="controls-row">
     <button class="btn btn-primary" onclick="parseAndDraw()">Generate</button>
-    <select id="paletteSelect">
-      <option value="0">Palette — Default (≤6)</option>
-      <option value="1">Palette — Tableau (≤6)</option>
-      <option value="2">Palette — Dark2 (≤6)</option>
-      <option value="3">Palette — Soft Modern</option>
-      <option value="4">Palette — Earth</option>
-      <option value="5">Palette — Greyscale</option>
-    </select>
+      <select id="paletteSelect">
+        <option value="0">qpAdm Classic (blue–green–red)</option>
+        <option value="1">ColorBrewer Set1</option>
+        <option value="2">Tableau (analytics)</option>
+        <option value="3">Dark2 (high contrast)</option>
+        <option value="4">Earth / Archaeogenetics</option>
+        <option value="5">Soft Modern</option>
+        <option value="6">Greyscale High Contrast</option>
+        <option value="7">Greyscale Journal</option>
+        <option value="8">Greyscale Soft</option>
+        <option value="9">Blue Scale</option>
+        <option value="10">Green Scale</option>
+      </select>
     <span id="formatBadge"></span>
     <button class="btn btn-dl" id="downloadBtn" onclick="downloadImage()">↓ Download PNG</button>
   </div>
@@ -209,7 +214,7 @@ const VERDICT_POS = {
   weakText:   '#ca8a04',
 
   /* FAIL */
-  failBg:     '#f8eaea',
+  failBg:     '#FBE9E9',
   failText:   '#dc2626',
 };
 
@@ -432,26 +437,44 @@ const TYPOGRAPHY = {
 };
 
 /* ══ COLOR PALETTES (CAPPED AT 6 COMPONENTS) ══ */
+/* ══ COLOR PALETTES (CURATED, ≤6 COMPONENTS) ══ */
 const colorPalettes = [
 
-  /* 0 — Default (scientific, colorblind-safe) */
-  ['#4477aa','#228833','#ee6677','#ccbb44','#66ccee','#aa3377'],
+  /* 0 — qpAdm Classic (blue / green / red) */
+  ['#4c72b0', '#55a868', '#c44e52', '#8172b2', '#ccb974', '#64b5cd'],
 
-  /* 1 — Tableau (clean analytics) */
-  ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b'],
+  /* 1 — ColorBrewer Set1 (high contrast, canonical) */
+  ['#e41a1c', '#377eb8', '#4daf4a', '#984ea3', '#ff7f00', '#a65628'],
 
-  /* 2 — Dark2 (strong separation) */
-  ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#a6761d'],
+  /* 2 — Tableau 10 (trimmed, analytics standard) */
+  ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'],
 
-  /* 3 — Soft modern */
-  ['#457b9d','#2a9d8f','#e63946','#f4a261','#264653','#b5838d'],
+  /* 3 — Dark2 (strong separation, presentations) */
+  ['#1b9e77', '#d95f02', '#7570b3', '#e7298a', '#66a61e', '#a6761d'],
 
-  /* 4 — Earth / archaeogenetics */
-  ['#5b8c5a','#4c6a92','#c97c5d','#b1a44c','#7a4a6e','#6b705c'],
+  /* 4 — Archaeogenetics / Earth tones */
+  ['#5b8c5a', '#4c6a92', '#c97c5d', '#b1a44c', '#7a4a6e', '#6b705c'],
 
-  /* 5 — Greyscale (print & colorblind safe) */
-  ['#111111','#2f2f2f','#555555','#7a7a7a','#a0a0a0','#cfcfcf'],
+  /* 5 — Soft modern (low saturation, papers) */
+  ['#457b9d', '#2a9d8f', '#e63946', '#f4a261', '#264653', '#b5838d'],
+
+  /* 6 — Greyscale (high contrast, print-safe) */
+  ['#111111', '#2f2f2f', '#555555', '#7a7a7a', '#a0a0a0', '#cfcfcf'],
+
+  /* 7 — Greyscale (balanced, journal figures) */
+  ['#1a1a1a', '#3a3a3a', '#5a5a5a', '#7a7a7a', '#9a9a9a', '#bababa'],
+
+  /* 8 — Greyscale (soft, background-friendly) */
+  ['#2b2b2b', '#4b4b4b', '#6b6b6b', '#8b8b8b', '#ababab', '#d0d0d0'],
+
+  /* 9 — Blue-scale (population structure friendly) */
+  ['#08306b', '#08519c', '#2171b5', '#4292c6', '#6baed6', '#9ecae1'],
+
+  /* 10 — Green-scale (ASI/AASI-heavy models) */
+  ['#00441b', '#006d2c', '#238b45', '#41ab5d', '#74c476', '#a1d99b'],
+
 ];
+
 
 
 let chartObj = null;
