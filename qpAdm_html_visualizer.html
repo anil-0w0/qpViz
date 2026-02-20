@@ -7,20 +7,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ui-bg:        #0e0e0f;
-      --ui-surface:   #17171a;
-      --ui-border:    #252528;
-      --ui-border-h:  #3a3a3e;
-      --ui-text:      #e2e2e6;
-      --ui-muted:     #6b6b72;
-      --ui-accent:    #6366f1;
-      --ui-accent-h:  #818cf8;
-      --ui-danger:    #ef4444;
+      --ui-bg:       #0e0e0f;
+      --ui-surface:  #17171a;
+      --ui-border:   #252528;
+      --ui-border-h: #3a3a3e;
+      --ui-text:     #e2e2e6;
+      --ui-muted:    #6b6b72;
+      --ui-accent:   #6366f1;
+      --ui-accent-h: #818cf8;
     }
 
     body {
@@ -31,372 +31,261 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 20px 60px;
+      padding: 32px 20px 64px;
       gap: 24px;
     }
 
-    /* ── Header ── */
-    .app-header {
-      width: 100%;
-      max-width: 1040px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .app-header-row {
-      display: flex;
-      align-items: baseline;
-      gap: 14px;
-    }
-    .app-title {
-      font-size: 2rem;
-      font-weight: 900;
-      color: #fff;
-      letter-spacing: -0.03em;
-    }
-    .app-title span {
-      color: var(--ui-accent-h);
-    }
+    /* ─── Header ─── */
+    .app-header { width: 100%; max-width: 1040px; display: flex; flex-direction: column; gap: 4px; }
+    .app-header-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    .app-title { font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -0.03em; }
+    .app-title span { color: var(--ui-accent-h); }
     .app-badge {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--ui-muted);
-      background: var(--ui-surface);
-      border: 1px solid var(--ui-border);
-      border-radius: 3px;
-      padding: 3px 8px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ui-muted); background: var(--ui-surface); border: 1px solid var(--ui-border);
+      border-radius: 3px; padding: 3px 8px;
     }
     .app-desc {
-      font-size: 12px;
-      font-weight: 400;
-      color: var(--ui-muted);
-      letter-spacing: 0.01em;
-      line-height: 1.6;
-      max-width: 580px;
+      font-size: 12px; color: var(--ui-muted); letter-spacing: 0.01em;
+      line-height: 1.65; max-width: 620px;
     }
 
-    /* ── Input panel ── */
-    .input-panel {
-      width: 100%;
-      max-width: 1040px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .textarea-wrap {
-      position: relative;
-    }
+    /* ─── Input panel ─── */
+    .input-panel { width: 100%; max-width: 1040px; display: flex; flex-direction: column; gap: 10px; }
+    .textarea-wrap { position: relative; }
     textarea {
-      width: 100%;
-      height: 148px;
-      background: var(--ui-surface);
-      border: 1px solid var(--ui-border);
-      border-radius: 5px;
-      color: #c8c8c8;
-      font-family: 'DM Mono', monospace;
-      font-size: 11.5px;
-      line-height: 1.7;
-      padding: 12px 14px;
-      resize: vertical;
-      outline: none;
+      width: 100%; height: 148px;
+      background: var(--ui-surface); border: 1px solid var(--ui-border);
+      border-radius: 5px; color: #c8c8c8;
+      font-family: 'DM Mono', monospace; font-size: 11.5px; line-height: 1.7;
+      padding: 12px 14px; resize: vertical; outline: none;
       transition: border-color 0.15s;
     }
     textarea:focus { border-color: var(--ui-border-h); }
-    textarea::placeholder { color: #333; }
-
+    textarea::placeholder { color: #2a2a2c; }
     .paste-hint {
-      position: absolute;
-      bottom: 8px; right: 10px;
-      font-size: 10px;
-      color: #333;
-      pointer-events: none;
+      position: absolute; bottom: 8px; right: 10px;
+      font-size: 10px; color: #2a2a2c; pointer-events: none;
     }
 
-    /* ── Control rows ── */
-    .controls-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
+    /* ─── Controls ─── */
+    .controls-row { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+    .ctrl-sep { width: 1px; height: 26px; background: var(--ui-border); flex-shrink: 0; }
+    .ctrl-label {
+      font-size: 10.5px; font-weight: 600; color: var(--ui-muted);
+      letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
     }
+    .ctrl-group { display: flex; align-items: center; gap: 5px; }
 
-    .ctrl-sep {
-      width: 1px;
-      height: 28px;
-      background: var(--ui-border);
-      flex-shrink: 0;
-    }
-
-    /* ── Buttons ── */
+    /* Buttons */
     .btn {
-      padding: 7px 16px;
-      border: none;
-      border-radius: 4px;
-      font-size: 12.5px;
-      font-weight: 600;
-      cursor: pointer;
-      letter-spacing: 0.01em;
-      transition: background 0.13s, opacity 0.13s;
-      white-space: nowrap;
+      padding: 7px 14px; border: none; border-radius: 4px; font-size: 12.5px;
+      font-weight: 600; cursor: pointer; letter-spacing: 0.01em;
+      transition: background 0.13s, color 0.13s, border-color 0.13s;
+      white-space: nowrap; line-height: 1;
     }
-    .btn-primary {
-      background: #f0f0f0;
-      color: #111;
-    }
+    .btn-primary { background: #f0f0f0; color: #111; }
     .btn-primary:hover { background: #fff; }
-
-    .btn-ghost {
-      background: var(--ui-surface);
-      color: var(--ui-muted);
-      border: 1px solid var(--ui-border);
-    }
+    .btn-ghost { background: var(--ui-surface); color: var(--ui-muted); border: 1px solid var(--ui-border); }
     .btn-ghost:hover { border-color: var(--ui-border-h); color: var(--ui-text); }
-
-    .btn-upload {
-      background: var(--ui-surface);
-      color: #7dd3fc;
-      border: 1px solid #1e3a4a;
-    }
+    .btn-upload { background: var(--ui-surface); color: #7dd3fc; border: 1px solid #1e3a4a; }
     .btn-upload:hover { border-color: #38bdf8; color: #38bdf8; }
-
-    .btn-dl {
-      background: var(--ui-accent);
-      color: #fff;
-      display: none;
-    }
+    .btn-dl { background: var(--ui-accent); color: #fff; display: none; }
     .btn-dl:hover { background: var(--ui-accent-h); }
-
-    /* ── Selects / inputs ── */
-    select, .ctrl-input {
-      background: var(--ui-surface);
+    .btn-toggle {
+      background: var(--ui-surface); color: var(--ui-muted);
       border: 1px solid var(--ui-border);
-      border-radius: 4px;
-      color: #bbb;
-      font-size: 12px;
-      padding: 7px 10px;
-      cursor: pointer;
-      outline: none;
-      transition: border-color 0.13s;
+      font-size: 11.5px;
+    }
+    .btn-toggle.active { background: #1e2a1e; color: #4ade80; border-color: #2a4a2a; }
+    .btn-toggle:hover:not(.active) { border-color: var(--ui-border-h); }
+
+    /* Selects & number input */
+    select, .ctrl-input {
+      background: var(--ui-surface); border: 1px solid var(--ui-border);
+      border-radius: 4px; color: #bbb; font-size: 12px; padding: 7px 9px;
+      cursor: pointer; outline: none; transition: border-color 0.13s;
     }
     select:hover, select:focus,
     .ctrl-input:hover, .ctrl-input:focus { border-color: var(--ui-border-h); }
-
-    .ctrl-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--ui-muted);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    .ctrl-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
     .ctrl-input-num {
-      width: 56px;
-      text-align: center;
+      width: 54px; text-align: center;
       font-family: 'DM Mono', monospace;
     }
 
-    /* ── Format badge ── */
+    /* Format badge */
     #formatBadge {
-      display: none;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 3px;
-      background: #0d2b18;
-      color: #4ade80;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
+      display: none; font-size: 10px; font-weight: 700; padding: 4px 10px;
+      border-radius: 3px; letter-spacing: 0.07em; text-transform: uppercase;
+      background: #0d2b18; color: #4ade80;
     }
-    #formatBadge.raw { background: #2b1800; color: #fb923c; }
+    #formatBadge.raw   { background: #2b1800; color: #fb923c; }
     #formatBadge.error { background: #2e1010; color: #f87171; }
 
-    /* ── Palette optgroups ── */
-    optgroup { color: var(--ui-muted); }
-
-    /* ═══════════════════════════════════════════
-       CARD
-    ═══════════════════════════════════════════ */
+    /* ═══════════════════════════════
+       CARD  (positioning anchor)
+    ═══════════════════════════════ */
     #card {
-      width: 100%;
-      max-width: 1040px;
-      border-radius: 6px;
-      display: none;
-      position: relative;
-      overflow: visible;
+      width: 100%; max-width: 1040px;
+      border-radius: 6px; display: none;
+      position: relative; overflow: visible;
       box-shadow: 0 24px 80px rgba(0,0,0,0.7);
     }
-    .card-bg {
-      position: absolute;
-      inset: 0;
-      border-radius: 6px;
-      z-index: 0;
-      pointer-events: none;
-    }
+    .card-bg { position: absolute; inset: 0; border-radius: 6px; z-index: 0; pointer-events: none; }
 
-    /* ── Card Header ── */
+    /* Card header — top-center, z above everything except badge */
     .card-header {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 2;
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; flex-direction: column; align-items: center; z-index: 2;
     }
     #cardTarget { width: 100%; }
     .stat-sep { color: #bbb; margin: 0 8px; }
 
-    /* ── Verdict badge ── */
-    .verdict-badge {
-      position: absolute;
-      border: none;
-      border-radius: 0;
-      text-transform: uppercase;
-      z-index: 3;
-    }
+    /* Verdict badge */
+    .verdict-badge { position: absolute; border: none; border-radius: 0; text-transform: uppercase; z-index: 3; }
 
-    /* ── Donut ── */
-    #donutWrap {
-      position: absolute;
-      z-index: 10;
-    }
-    #donutWrap canvas {
-      width: 100% !important;
-      height: 100% !important;
-      display: block;
-    }
+    /* Donut wrapper — sized & positioned by JS */
+    #donutWrap { position: absolute; z-index: 10; }
+    #donutWrap canvas { width: 100% !important; height: 100% !important; display: block; }
 
-    /* ── Info panel ── */
+    /* Info panel — sized & positioned by JS */
     .info-col {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 10px;
-      min-width: 0;
-      z-index: 2;
+      position: absolute; display: flex; flex-direction: column;
+      justify-content: center; gap: 10px; min-width: 0; z-index: 2;
+      overflow: hidden;
     }
 
-    /* ── Tables ── */
+    /* Tables */
     .data-box   { overflow: hidden; }
     .data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-
     .col-sw-col   { width: 40px; }
     .col-name-col { width: auto; }
     .col-data-col { width: 220px; }
-
-    .col-sw   { vertical-align: middle; text-align: left; }
-    .col-name { vertical-align: middle; overflow: visible; white-space: normal; word-break: normal; overflow-wrap: normal; }
-    .col-data { vertical-align: middle; }
-
+    .col-sw, .col-name, .col-data { vertical-align: middle; }
     .swatch   { display: inline-block; vertical-align: middle; flex-shrink: 0; }
     .pop-name { vertical-align: middle; hyphens: none; line-height: 1.35; }
-
     .outgroups-td { white-space: normal; word-break: break-word; overflow-wrap: break-word; }
 
-    /* ── Watermark ── */
+    /* Watermark */
     .watermark { position: absolute; bottom: 8px; right: 12px; z-index: 5; }
 
-    /* ── Keyboard hint ── */
-    .kbd-hint {
-      font-size: 10.5px;
-      color: var(--ui-muted);
-      align-self: center;
-      margin-left: 2px;
-    }
+    /* ─── Stacked (portrait / square): full-width panel below donut ─── */
+    #card.stacked .col-data-col { width: auto; }
+    #card.stacked .info-col { justify-content: flex-start; }
+    #card.stacked .data-table { table-layout: auto; }
   </style>
 </head>
 <body>
 
-<!-- ══ APP HEADER ══════════════════════════════════════════════════════════ -->
+<!-- ══ HEADER ══════════════════════════════════════════════════════════════ -->
 <div class="app-header">
   <div class="app-header-row">
     <h1 class="app-title">qp<span>Viz</span></h1>
     <span class="app-badge">qpAdm Visualizer</span>
   </div>
   <p class="app-desc">
-    Turn raw qpAdm log output or pre-formatted summaries into publication-ready
-    admixture charts. Paste your output below, pick a palette, and export as PNG.
-    Supports both raw qpAdm logs and compact summary format.
+    Paste raw qpAdm log output or a compact summary to generate a publication-ready
+    admixture chart. Supports both formats, 19 colour palettes, light&nbsp;&amp;&nbsp;dark card
+    themes, five aspect ratios optimised for print, slides, and social media, and
+    live donut percentage labels.
   </p>
 </div>
 
 <!-- ══ INPUT PANEL ═════════════════════════════════════════════════════════ -->
 <div class="input-panel">
   <div class="textarea-wrap">
-    <textarea id="qpadmText" placeholder="Paste raw qpAdm log or pre-formatted summary…
+    <textarea id="qpadmText"
+      placeholder="Paste raw qpAdm log or pre-formatted summary…
 
 RAW LOG:   left pops / right pops / best coefficients / std. errors / f4rank block
-SUMMARY:   Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 | …
+SUMMARY:   Target: X
+           Weights:
+           PopA - 43.8% SE: 3.78% Z: 11.57
+           P value: 0.178 | chisq: 4.12 | Rights: Mbuti, Yoruba, …
 
-→ Ctrl+Enter to generate  ·  Ctrl+O to upload file"></textarea>
-    <span class="paste-hint">Ctrl+Enter to generate</span>
+Ctrl+Enter → generate   ·   Ctrl+O → upload file"></textarea>
+    <span class="paste-hint">Ctrl+Enter · generate</span>
   </div>
 
-  <!-- Row 1: primary actions + palette + theme + cutout -->
   <div class="controls-row">
+    <!-- Primary actions -->
     <button class="btn btn-primary" onclick="parseAndDraw()">Generate</button>
-    <button class="btn btn-ghost" onclick="loadExample()">Example</button>
-    <button class="btn btn-upload" onclick="document.getElementById('fileInput').click()">↑ Upload File</button>
-    <input type="file" id="fileInput" accept=".log,.txt,.raw,.text,.out,.csv,text/plain" style="display:none" onchange="handleFileUpload(event)">
+    <button class="btn btn-ghost"   onclick="loadExample()">Example</button>
+    <button class="btn btn-upload"  onclick="document.getElementById('fileInput').click()">↑ Upload</button>
+    <input type="file" id="fileInput"
+           accept=".log,.txt,.raw,.text,.out,text/plain"
+           style="display:none" onchange="handleFileUpload(event)">
 
     <div class="ctrl-sep"></div>
 
+    <!-- Palette -->
     <select id="paletteSelect">
-      <optgroup label="── Universal (light &amp; dark) ──">
+      <optgroup label="── Universal ──">
         <option value="0">qpAdm Classic</option>
         <option value="1">ColorBrewer Set1</option>
         <option value="2">Tableau 10</option>
         <option value="3">Dark2</option>
         <option value="4">Earth / Archaeogenetics</option>
         <option value="5">Soft Modern</option>
-        <option value="11">Okabe-Ito ✦ colorblind-safe</option>
-        <option value="12">Paul Tol Bright ✦ colorblind-safe</option>
+        <option value="11">Okabe-Ito ✦ colorblind</option>
+        <option value="12">Paul Tol Bright ✦ colorblind</option>
         <option value="13">ISBA / Reich Lab</option>
         <option value="14">Desaturated Pastel</option>
-        <option value="15">Nature / Science Figures</option>
+        <option value="15">Nature / Science</option>
       </optgroup>
-      <optgroup label="── Light card only ──">
+      <optgroup label="── Light card ──">
         <option value="6">Greyscale High Contrast</option>
         <option value="7">Greyscale Journal</option>
         <option value="8">Greyscale Soft</option>
         <option value="9">Blue Scale</option>
         <option value="10">Green Scale</option>
       </optgroup>
-      <optgroup label="── Dark card recommended ──">
+      <optgroup label="── Dark card ──">
         <option value="16">Neon Vivid ◆</option>
         <option value="17">Pastel Vivid ◆</option>
         <option value="18">Midnight Ocean ◆</option>
       </optgroup>
     </select>
 
-    <div class="ctrl-sep"></div>
-
+    <!-- Theme -->
     <div class="ctrl-group">
-      <span class="ctrl-label">Card</span>
+      <span class="ctrl-label">Theme</span>
       <select id="themeSelect" onchange="onThemeChange(this.value)">
         <option value="light">☀ Light</option>
         <option value="dark">◑ Dark</option>
       </select>
     </div>
 
+    <div class="ctrl-sep"></div>
+
+    <!-- Aspect ratio -->
     <div class="ctrl-group">
-      <span class="ctrl-label">Cutout</span>
+      <span class="ctrl-label">Ratio</span>
+      <select id="ratioSelect" onchange="onRatioChange(this.value)">
+        <option value="landscape-wide" data-ar="16 / 10.5">Default (16:10.5)</option>
+        <option value="landscape-169"  data-ar="16 / 9">Widescreen (16:9)</option>
+        <option value="landscape-43"   data-ar="4 / 3">Standard (4:3)</option>
+        <option value="square"         data-ar="1 / 1">Square (social)</option>
+        <option value="portrait"       data-ar="9 / 16">Portrait (story)</option>
+      </select>
+    </div>
+
+    <!-- Donut hole -->
+    <div class="ctrl-group">
+      <span class="ctrl-label">Hole</span>
       <input type="number" id="cutoutInput" class="ctrl-input ctrl-input-num"
              min="20" max="90" value="65" step="1"
              oninput="onCutoutChange(this.value)"
-             title="Donut hole size (20–90 %)">
+             title="Donut hole size — 20 to 90 %">
       <span class="ctrl-label">%</span>
     </div>
+
+    <!-- Label toggle -->
+    <button class="btn btn-toggle" id="labelToggle"
+            onclick="toggleLabels()"
+            title="Show / hide percentage labels inside the donut">
+      % labels
+    </button>
 
     <div class="ctrl-sep"></div>
 
@@ -436,128 +325,102 @@ SUMMARY:   Target: X | Weights: PopA - 43.8% SE: 3.78% Z: 11.57 | P value: 0.15 
   <div class="watermark" id="watermark"></div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════════════════════
-  JAVASCRIPT
-══════════════════════════════════════════════════════════════════════════════ -->
 <script>
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   CARD  — base appearance (mutated by theme system)
-═══════════════════════════════════════════════════════════════════════════ */
-const CARD = {
-  bgColor:     '#ffffff',
-  aspectRatio: '16 / 10.5',
+/* ─── register datalabels plugin ─── */
+Chart.register(ChartDataLabels);
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LAYOUT PROFILES
+   Each profile drives donut placement + info-panel bounds.
+   Units: donutDiameter / donutCenterX as % of card WIDTH
+          donutCenterY / panelTop / panelBottom as % of card HEIGHT
+          panelLeft / panelRight as % of card WIDTH
+   stacked: true → card gets .stacked class → full-width panel below donut
+═══════════════════════════════════════════════════════════════════════ */
+const LAYOUT_PROFILES = {
+  'landscape-wide': {
+    donutCenterX: 23, donutCenterY: 55, donutDiameter: 43,
+    panelLeft: 48, panelTop: 18, panelRight: 2, panelBottom: 3,
+    stacked: false,
+  },
+  'landscape-169': {
+    donutCenterX: 22, donutCenterY: 57, donutDiameter: 40,
+    panelLeft: 46, panelTop: 15, panelRight: 2, panelBottom: 3,
+    stacked: false,
+  },
+  'landscape-43': {
+    donutCenterX: 24, donutCenterY: 54, donutDiameter: 46,
+    panelLeft: 50, panelTop: 18, panelRight: 2, panelBottom: 3,
+    stacked: false,
+  },
+  /* square: donut top-center, table spans full width below */
+  'square': {
+    donutCenterX: 50, donutCenterY: 38, donutDiameter: 52,
+    panelLeft: 4, panelTop: 65, panelRight: 4, panelBottom: 3,
+    stacked: true,
+  },
+  /* portrait: donut top-center, wide table panel occupying lower 50% */
+  'portrait': {
+    donutCenterX: 50, donutCenterY: 26, donutDiameter: 65,
+    panelLeft: 4, panelTop: 50, panelRight: 4, panelBottom: 2,
+    stacked: true,
+  },
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   LAYOUT  — positions as % of card width (X) or card height (Y)
-═══════════════════════════════════════════════════════════════════════════ */
-const LAYOUT = {
-  donutCenterX:   23,
-  donutCenterY:   55,
-  donutDiameter:  43,
-  panelLeft:       48,
-  panelTop:        18,
-  panelRight:       2,
-  panelBottom:      3,
-};
+let activeLayout = 'landscape-wide';
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   VERDICT BADGE — position, size
-═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   GLOBAL CARD / STYLE OBJECTS
+   (Colours in these objects are mutated by applyTheme)
+═══════════════════════════════════════════════════════════════════════ */
+const CARD = { bgColor: '#ffffff', aspectRatio: '16 / 10.5' };
+
 const VERDICT_POS = {
-  anchorX:   98, anchorY:  3,
-  anchor:    'top-right',
-  minWidth:   0, minHeight: 0,
-  paddingV:   8, paddingH:  8,
-  textAlign: 'center',
-  /* colours populated by applyTheme() */
+  anchorX: 98, anchorY: 3, anchor: 'top-right',
+  minWidth: 0, minHeight: 0, paddingV: 8, paddingH: 8, textAlign: 'center',
   passBg: '#f3fefd', passText: '#3a9063',
   weakBg: '#fefce8', weakText: '#ca8a04',
   failBg: '#FFFAFA', failText: '#dc2626',
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   VERDICT THRESHOLDS
-═══════════════════════════════════════════════════════════════════════════ */
 const VERDICT_CFG = {
-  pValueFail:       0.05,
-  minZFail:         2.0,
-  minWeightFail:   -5,
-  maxRelSEFail:     1.5,
-  minWtForSE:       2,
-  minZStrong:       3.0,
-  maxRelSEStrong:   0.5,
-  maxSourcesStrong: 4,
+  pValueFail: 0.05, minZFail: 2.0, minWeightFail: -5,
+  maxRelSEFail: 1.5, minWtForSE: 2,
+  minZStrong: 3.0, maxRelSEStrong: 0.5, maxSourcesStrong: 4,
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   Z-SCORE TIER COLOURS
-═══════════════════════════════════════════════════════════════════════════ */
-const Z_COLORS = {
-  zGood: '#16a34a',
-  zMid:  '#ca8a04',
-  zBad:  '#dc2626',
-};
+const Z_COLORS = { zGood: '#16a34a', zMid: '#ca8a04', zBad: '#dc2626' };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   TABLE STYLE (mutated by theme)
-═══════════════════════════════════════════════════════════════════════════ */
 const TABLE_STYLE = {
-  boxBorderWidth:    '1.5px',
-  boxBorderColor:    '#d1d5db',
-  boxBorderRadius:   '2px',
-  headerBg:          '#f3f4f6',
-  headerBorderWidth: '1.5px',
-  headerBorderColor: '#d1d5db',
-  rowBorderWidth:    '1px',
-  rowBorderColor:    '#e5e7eb',
-  cellBg:            'transparent',
-  evenRowBg:         'transparent',
-  oddRowBg:          'transparent',
+  boxBorderWidth: '1.5px', boxBorderColor: '#d1d5db', boxBorderRadius: '2px',
+  headerBg: '#f3f4f6', headerBorderWidth: '1.5px', headerBorderColor: '#d1d5db',
+  rowBorderWidth: '1px', rowBorderColor: '#e5e7eb',
+  cellBg: 'transparent', evenRowBg: 'transparent', oddRowBg: 'transparent',
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   DONUT CONFIG
-═══════════════════════════════════════════════════════════════════════════ */
 const CFG = {
-  donutCutout:    '65%',
-  donutBorderW:   2,
-  donutBorderC:   '#000000',
-  donutHoverOff:  14,
-  donutClockwise: true,
-  donutStartAngle: 0,
-  zGoodMin: 3,
-  zMidMin:  2,
+  donutCutout: '65%', donutBorderW: 2, donutBorderC: '#000000',
+  donutHoverOff: 14, donutClockwise: true, donutStartAngle: 0,
+  zGoodMin: 3, zMidMin: 2,
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   SWATCH
-═══════════════════════════════════════════════════════════════════════════ */
-const SWATCH = {
-  width:  '29px',
-  height: '23px',
-  radius: '0px',
-  border: '1.8px solid #000',
-};
+const SWATCH = { width: '29px', height: '23px', radius: '0px', border: '1.8px solid #000' };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   TYPOGRAPHY (colours mutated by theme)
-═══════════════════════════════════════════════════════════════════════════ */
 const TYPOGRAPHY = {
   target: {
-    font: 'Roboto, sans-serif', fontSize: 'clamp(40px, 4.5vw, 60px)',
+    font: 'Roboto, sans-serif', fontSize: 'clamp(26px, 4vw, 60px)',
     fontWeight: 900, fontStyle: 'normal', color: '#0a0a0a',
     letterSpacing: '-0.02em', lineHeight: '1.05', align: 'center',
   },
   stat: {
-    font: 'DM Mono, monospace', fontSize: 'clamp(16px, 1.9vw, 28px)',
+    font: 'DM Mono, monospace', fontSize: 'clamp(11px, 1.6vw, 28px)',
     fontWeight: 400, fontStyle: 'normal', color: '#555555',
     letterSpacing: '0.01em', lineHeight: '1.3', align: 'center', marginTop: '2px',
   },
   headerPadding: { top: '10px', sides: '24px', bottom: '0px' },
   verdict: {
-    font: 'Roboto, sans-serif', fontSize: 'clamp(10px, 1.9vw, 18px)',
+    font: 'Roboto, sans-serif', fontSize: 'clamp(8px, 1.5vw, 18px)',
     fontWeight: 800, fontStyle: 'normal', letterSpacing: '0.14em',
   },
   sourcesHeader: {
@@ -577,14 +440,15 @@ const TYPOGRAPHY = {
   },
   sourcesZ: {
     font: 'Roboto, sans-serif', fontSize: '15px', fontWeight: 700,
-    fontStyle: 'normal', letterSpacing: '0', zPrefix: 'Z:\u2009', zSepPx: 8, zGap: '3px',
+    fontStyle: 'normal', letterSpacing: '0', zPrefix: 'Z:\u2009', zSepPx: 8,
   },
   sourcesColon: { colonText: ': ', colonFont: 'Roboto, sans-serif', colonColor: '#111111' },
   sourcesRowOverrides: [],
   outgroupsHeader: {
     font: 'Roboto, sans-serif', fontSize: '12px', fontWeight: 600,
     fontStyle: 'normal', color: '#6b7280', letterSpacing: '0.1em',
-    lineHeight: '1.4', align: 'center', text: 'Right (Outgroups)', textTransform: 'uppercase',
+    lineHeight: '1.4', align: 'center', text: 'Right (Outgroups)',
+    textTransform: 'uppercase',
   },
   outgroupsCell: {
     font: 'Roboto, sans-serif', fontSize: '15px', fontWeight: 500,
@@ -596,27 +460,24 @@ const TYPOGRAPHY = {
   },
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════
    THEME SYSTEM
-═══════════════════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════════════════════ */
 const THEMES = {
   light: {
-    cardBg:    '#ffffff',
-    donutBorderC: '#000000',
-    target:         { color: '#0a0a0a' },
-    stat:           { color: '#555555' },
-    sourcesName:    { color: '#111111' },
-    sourcesCoeff:   { color: '#111111' },
-    sourcesColon:   { colonColor: '#111111' },
-    sourcesHeader:  { color: '#6b7280' },
-    outgroupsHeader:{ color: '#6b7280' },
-    outgroupsCell:  { color: '#6b7280' },
-    watermark:      { color: '#c0cad6' },
+    cardBg: '#ffffff', donutBorderC: '#000000',
+    target:          { color: '#0a0a0a' },
+    stat:            { color: '#555555' },
+    sourcesName:     { color: '#111111' },
+    sourcesCoeff:    { color: '#111111' },
+    sourcesColon:    { colonColor: '#111111' },
+    sourcesHeader:   { color: '#6b7280' },
+    outgroupsHeader: { color: '#6b7280' },
+    outgroupsCell:   { color: '#6b7280' },
+    watermark:       { color: '#c0cad6' },
     table: {
-      boxBorderColor:    '#d1d5db',
-      headerBg:          '#f3f4f6',
-      headerBorderColor: '#d1d5db',
-      rowBorderColor:    '#e5e7eb',
+      boxBorderColor: '#d1d5db', headerBg: '#f3f4f6',
+      headerBorderColor: '#d1d5db', rowBorderColor: '#e5e7eb',
     },
     verdict: {
       passBg: '#f3fefd', passText: '#3a9063',
@@ -625,22 +486,19 @@ const THEMES = {
     },
   },
   dark: {
-    cardBg:    '#1a1a1a',   /* comfortable dark gray — not AMOLED */
-    donutBorderC: '#2a2a2a',
-    target:         { color: '#f0f0f0' },
-    stat:           { color: '#9ca3af' },
-    sourcesName:    { color: '#e5e7eb' },
-    sourcesCoeff:   { color: '#e5e7eb' },
-    sourcesColon:   { colonColor: '#e5e7eb' },
-    sourcesHeader:  { color: '#9ca3af' },
-    outgroupsHeader:{ color: '#9ca3af' },
-    outgroupsCell:  { color: '#9ca3af' },
-    watermark:      { color: '#4b5563' },
+    cardBg: '#1a1a1a', donutBorderC: '#2a2a2a',
+    target:          { color: '#f0f0f0' },
+    stat:            { color: '#9ca3af' },
+    sourcesName:     { color: '#e5e7eb' },
+    sourcesCoeff:    { color: '#e5e7eb' },
+    sourcesColon:    { colonColor: '#e5e7eb' },
+    sourcesHeader:   { color: '#9ca3af' },
+    outgroupsHeader: { color: '#9ca3af' },
+    outgroupsCell:   { color: '#9ca3af' },
+    watermark:       { color: '#4b5563' },
     table: {
-      boxBorderColor:    '#374151',
-      headerBg:          '#262626',
-      headerBorderColor: '#374151',
-      rowBorderColor:    '#2d2d2d',
+      boxBorderColor: '#374151', headerBg: '#262626',
+      headerBorderColor: '#374151', rowBorderColor: '#2d2d2d',
     },
     verdict: {
       passBg: '#0a2e20', passText: '#4ade80',
@@ -655,8 +513,8 @@ let currentTheme = 'light';
 function applyTheme(mode) {
   currentTheme = mode;
   const t = THEMES[mode];
-  CARD.bgColor      = t.cardBg;
-  CFG.donutBorderC  = t.donutBorderC;
+  CARD.bgColor     = t.cardBg;
+  CFG.donutBorderC = t.donutBorderC;
   Object.assign(TYPOGRAPHY.target,          t.target);
   Object.assign(TYPOGRAPHY.stat,            t.stat);
   Object.assign(TYPOGRAPHY.sourcesName,     t.sourcesName);
@@ -670,152 +528,208 @@ function applyTheme(mode) {
   TABLE_STYLE.headerBg          = t.table.headerBg;
   TABLE_STYLE.headerBorderColor = t.table.headerBorderColor;
   TABLE_STYLE.rowBorderColor    = t.table.rowBorderColor;
-  VERDICT_POS.passBg   = t.verdict.passBg;
-  VERDICT_POS.passText = t.verdict.passText;
-  VERDICT_POS.weakBg   = t.verdict.weakBg;
-  VERDICT_POS.weakText = t.verdict.weakText;
-  VERDICT_POS.failBg   = t.verdict.failBg;
-  VERDICT_POS.failText = t.verdict.failText;
+  VERDICT_POS.passBg   = t.verdict.passBg;   VERDICT_POS.passText = t.verdict.passText;
+  VERDICT_POS.weakBg   = t.verdict.weakBg;   VERDICT_POS.weakText = t.verdict.weakText;
+  VERDICT_POS.failBg   = t.verdict.failBg;   VERDICT_POS.failText = t.verdict.failText;
 }
 
 function onThemeChange(val) {
   applyTheme(val);
+  savePref('qpviz_theme', val);
   if (document.getElementById('card').style.display !== 'none') parseAndDraw();
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   COLOR PALETTES
-   0–10: original set
-   11–15: new universal (light & dark friendly)
-   16–18: dark-card optimized
-═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   COLOR PALETTES  (indices 0–18)
+═══════════════════════════════════════════════════════════════════════ */
 const colorPalettes = [
-  /* 0 — qpAdm Classic */
-  ['#4c72b0','#55a868','#c44e52','#8172b2','#ccb974','#64b5cd'],
-  /* 1 — ColorBrewer Set1 */
-  ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#a65628'],
-  /* 2 — Tableau 10 */
-  ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b'],
-  /* 3 — Dark2 */
-  ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#a6761d'],
-  /* 4 — Earth / Archaeogenetics */
-  ['#c8943a','#2a7f7f','#c0533a','#4a5fa0','#6b8c42','#a05050'],
-  /* 5 — Soft Modern */
-  ['#3b82c4','#e8622c','#2da87a','#9b59b6','#e6a817','#708090'],
-  /* 6 — Greyscale High Contrast (light only) */
-  ['#111111','#2f2f2f','#555555','#7a7a7a','#a0a0a0','#cfcfcf'],
-  /* 7 — Greyscale Journal (light only) */
-  ['#1a1a1a','#3a3a3a','#5a5a5a','#7a7a7a','#9a9a9a','#bababa'],
-  /* 8 — Greyscale Soft (light only) */
-  ['#2b2b2b','#4b4b4b','#6b6b6b','#8b8b8b','#ababab','#d0d0d0'],
-  /* 9 — Blue Scale */
-  ['#08306b','#08519c','#2171b5','#4292c6','#6baed6','#9ecae1'],
-  /* 10 — Green Scale */
-  ['#00441b','#006d2c','#238b45','#41ab5d','#74c476','#a1d99b'],
-  /* 11 — Okabe-Ito ✦ colorblind-safe */
-  ['#0072b2','#e69f00','#009e73','#d55e00','#cc79a7','#56b4e9'],
-  /* 12 — Paul Tol Bright ✦ colorblind-safe */
-  ['#4477aa','#ee6677','#228833','#ccbb44','#66ccee','#aa3377'],
-  /* 13 — ISBA / Reich Lab */
-  ['#b5572b','#4878a0','#7ab080','#d4a44c','#6f5094','#c88c8c'],
-  /* 14 — Desaturated Pastel */
-  ['#7ba7c7','#e8a97e','#8abb9e','#d4879b','#b3a6d0','#c4b882'],
-  /* 15 — Nature / Science Figures */
-  ['#e41a1c','#1f78b4','#33a02c','#ff7f00','#6a3d9a','#b15928'],
-  /* 16 — Neon Vivid ◆ dark-card */
-  ['#60a5fa','#34d399','#f87171','#fbbf24','#a78bfa','#fb923c'],
-  /* 17 — Pastel Vivid ◆ dark-card */
-  ['#93c5fd','#6ee7b7','#fca5a5','#fde68a','#c4b5fd','#fdba74'],
-  /* 18 — Midnight Ocean ◆ dark-card */
-  ['#38bdf8','#818cf8','#34d399','#fb7185','#fbbf24','#a3e635'],
+  ['#4c72b0','#55a868','#c44e52','#8172b2','#ccb974','#64b5cd'],   /* 0  qpAdm Classic      */
+  ['#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#a65628'],   /* 1  ColorBrewer Set1   */
+  ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b'],   /* 2  Tableau 10         */
+  ['#1b9e77','#d95f02','#7570b3','#e7298a','#66a61e','#a6761d'],   /* 3  Dark2              */
+  ['#c8943a','#2a7f7f','#c0533a','#4a5fa0','#6b8c42','#a05050'],   /* 4  Earth              */
+  ['#3b82c4','#e8622c','#2da87a','#9b59b6','#e6a817','#708090'],   /* 5  Soft Modern        */
+  ['#111111','#2f2f2f','#555555','#7a7a7a','#a0a0a0','#cfcfcf'],   /* 6  Grey High Contrast */
+  ['#1a1a1a','#3a3a3a','#5a5a5a','#7a7a7a','#9a9a9a','#bababa'],   /* 7  Grey Journal       */
+  ['#2b2b2b','#4b4b4b','#6b6b6b','#8b8b8b','#ababab','#d0d0d0'],   /* 8  Grey Soft          */
+  ['#08306b','#08519c','#2171b5','#4292c6','#6baed6','#9ecae1'],   /* 9  Blue Scale         */
+  ['#00441b','#006d2c','#238b45','#41ab5d','#74c476','#a1d99b'],   /* 10 Green Scale        */
+  ['#0072b2','#e69f00','#009e73','#d55e00','#cc79a7','#56b4e9'],   /* 11 Okabe-Ito          */
+  ['#4477aa','#ee6677','#228833','#ccbb44','#66ccee','#aa3377'],   /* 12 Paul Tol Bright    */
+  ['#b5572b','#4878a0','#7ab080','#d4a44c','#6f5094','#c88c8c'],   /* 13 ISBA / Reich Lab   */
+  ['#7ba7c7','#e8a97e','#8abb9e','#d4879b','#b3a6d0','#c4b882'],   /* 14 Desaturated Pastel */
+  ['#e41a1c','#1f78b4','#33a02c','#ff7f00','#6a3d9a','#b15928'],   /* 15 Nature / Science   */
+  ['#60a5fa','#34d399','#f87171','#fbbf24','#a78bfa','#fb923c'],   /* 16 Neon Vivid ◆       */
+  ['#93c5fd','#6ee7b7','#fca5a5','#fde68a','#c4b5fd','#fdba74'],   /* 17 Pastel Vivid ◆     */
+  ['#38bdf8','#818cf8','#34d399','#fb7185','#fbbf24','#a3e635'],   /* 18 Midnight Ocean ◆   */
 ];
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════
    STATE
-═══════════════════════════════════════════════════════════════════════════ */
-let chartObj = null;
+═══════════════════════════════════════════════════════════════════════ */
+let chartObj   = null;
+let showLabels = false;
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   PERSISTENCE (localStorage)
-═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   PERSISTENCE
+═══════════════════════════════════════════════════════════════════════ */
+function savePref(k, v) { try { localStorage.setItem(k, String(v)); } catch(e) {} }
+function loadPref(k)     { try { return localStorage.getItem(k); }    catch(e) { return null; } }
+
 function loadPrefs() {
-  try {
-    const cutout = localStorage.getItem('qpviz_cutout');
-    if (cutout) {
-      const v = parseInt(cutout);
-      if (v >= 20 && v <= 90) {
-        document.getElementById('cutoutInput').value = v;
-        CFG.donutCutout = v + '%';
-      }
+  /* cutout */
+  const cutout = loadPref('qpviz_cutout');
+  if (cutout) {
+    const v = parseInt(cutout);
+    if (v >= 20 && v <= 90) {
+      document.getElementById('cutoutInput').value = v;
+      CFG.donutCutout = v + '%';
     }
-    const theme = localStorage.getItem('qpviz_theme');
-    if (theme === 'dark' || theme === 'light') {
-      document.getElementById('themeSelect').value = theme;
-      applyTheme(theme);
+  }
+  /* theme */
+  const theme = loadPref('qpviz_theme');
+  if (theme === 'dark' || theme === 'light') {
+    document.getElementById('themeSelect').value = theme;
+    applyTheme(theme);
+  }
+  /* palette */
+  const palette = loadPref('qpviz_palette');
+  if (palette !== null) {
+    const sel = document.getElementById('paletteSelect');
+    if (sel.querySelector(`option[value="${palette}"]`)) sel.value = palette;
+  }
+  /* ratio */
+  const ratio = loadPref('qpviz_ratio');
+  if (ratio) {
+    const sel = document.getElementById('ratioSelect');
+    const opt = sel.querySelector(`option[value="${ratio}"]`);
+    if (opt) {
+      sel.value        = ratio;
+      activeLayout     = ratio;
+      CARD.aspectRatio = opt.dataset.ar;
     }
-    const palette = localStorage.getItem('qpviz_palette');
-    if (palette !== null) {
-      const sel = document.getElementById('paletteSelect');
-      if (sel.querySelector(`option[value="${palette}"]`)) sel.value = palette;
-    }
-  } catch(e) { /* localStorage unavailable */ }
+  }
+  /* labels */
+  if (loadPref('qpviz_labels') === 'true') {
+    showLabels = true;
+    document.getElementById('labelToggle').classList.add('active');
+  }
 }
 
-function savePref(key, val) {
-  try { localStorage.setItem(key, val); } catch(e) {}
+/* ═══════════════════════════════════════════════════════════════════════
+   CONTROL HANDLERS
+═══════════════════════════════════════════════════════════════════════ */
+function onRatioChange(val) {
+  const opt = document.querySelector(`#ratioSelect option[value="${val}"]`);
+  if (!opt) return;
+  activeLayout     = val;
+  CARD.aspectRatio = opt.dataset.ar;
+  savePref('qpviz_ratio', val);
+  const cardEl = document.getElementById('card');
+  if (cardEl.style.display === 'none') return;
+  cardEl.style.aspectRatio = CARD.aspectRatio;
+  const prof = LAYOUT_PROFILES[activeLayout];
+  cardEl.classList.toggle('stacked', !!prof.stacked);
+  applyLayout();
+  const vb = document.getElementById('verdictBadge');
+  if (vb.textContent) requestAnimationFrame(() => applyVerdictPos(vb, vb.dataset.verdict || 'fail'));
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   CUTOUT HANDLER
-═══════════════════════════════════════════════════════════════════════════ */
 function onCutoutChange(val) {
   const v = parseInt(val);
   if (isNaN(v) || v < 20 || v > 90) return;
   CFG.donutCutout = v + '%';
   savePref('qpviz_cutout', v);
+  if (chartObj) { chartObj.options.cutout = CFG.donutCutout; chartObj.update(); }
+}
+
+function toggleLabels() {
+  showLabels = !showLabels;
+  savePref('qpviz_labels', showLabels);
+  document.getElementById('labelToggle').classList.toggle('active', showLabels);
   if (chartObj) {
-    chartObj.options.cutout = CFG.donutCutout;
+    chartObj.options.plugins.datalabels.display =
+      (ctx) => showLabels && ctx.dataset.data[ctx.dataIndex] > 5;
     chartObj.update();
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   FILE UPLOAD
-═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   FILE UPLOAD & EXAMPLE
+═══════════════════════════════════════════════════════════════════════ */
 function handleFileUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload  = e => {
     document.getElementById('qpadmText').value = e.target.result;
-    setFormatBadge('', '');  /* clear until parsed */
+    setFormatBadge('', '');
     parseAndDraw();
   };
   reader.onerror = () => showBadgeError('File read error');
   reader.readAsText(file);
-  event.target.value = '';  /* reset so same file can be re-uploaded */
+  event.target.value = '';
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   EXAMPLE DATA
-═══════════════════════════════════════════════════════════════════════════ */
 function loadExample() {
-  document.getElementById('qpadmText').value = [
-    'Target: Hungary_MBA',
-    'Weights:',
-    'Yamnaya_Samara - 42.3% SE: 4.12% Z: 10.27',
-    'Anatolia_N - 38.1% SE: 3.87% Z: 9.84',
-    'WHG - 19.6% SE: 3.45% Z: 5.68',
-    'P value: 0.243',
-    'chisq: 2.81',
-    'Rights: Mbuti, Yoruba, Han, Papuan, Onge',
-  ].join('\n');
+  document.getElementById('qpadmText').value =
+`Target: Hungary_MBA
+Weights:
+Yamnaya_Samara - 42.3% SE: 4.12% Z: 10.27
+Anatolia_N - 38.1% SE: 3.87% Z: 9.84
+WHG - 19.6% SE: 3.45% Z: 5.68
+P value: 0.243
+chisq: 2.81
+Rights: Mbuti, Yoruba, Han, Papuan, Onge`;
   parseAndDraw();
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   UTILITIES
-═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   LAYOUT ENGINE
+   Reads LAYOUT_PROFILES[activeLayout].
+   Scales source-table text for narrow (portrait) cards.
+═══════════════════════════════════════════════════════════════════════ */
+function applyLayout() {
+  const cardEl = document.getElementById('card');
+  const wrap   = document.getElementById('donutWrap');
+  const info   = document.getElementById('infoCol');
+  if (cardEl.style.display === 'none') return;
+
+  const cW = cardEl.offsetWidth;
+  const cH = cardEl.offsetHeight;
+  const p  = LAYOUT_PROFILES[activeLayout] || LAYOUT_PROFILES['landscape-wide'];
+
+  /* Donut size & position */
+  const d  = (p.donutDiameter / 100) * cW;
+  const cx = (p.donutCenterX  / 100) * cW;
+  const cy = (p.donutCenterY  / 100) * cH;
+  wrap.style.width  = d + 'px';
+  wrap.style.height = d + 'px';
+  wrap.style.left   = (cx - d / 2) + 'px';
+  wrap.style.top    = (cy - d / 2) + 'px';
+
+  /* Info panel bounds */
+  info.style.left   = ((p.panelLeft   / 100) * cW) + 'px';
+  info.style.top    = ((p.panelTop    / 100) * cH) + 'px';
+  info.style.right  = ((p.panelRight  / 100) * cW) + 'px';
+  info.style.bottom = ((p.panelBottom / 100) * cH) + 'px';
+
+  /* Scale table text proportionally for narrow cards */
+  const scale = Math.min(1, cW / 760);
+  document.querySelectorAll('#sourcesBody .pop-name').forEach(el => {
+    el.style.fontSize = Math.max(10, Math.round(17 * scale)) + 'px';
+  });
+  document.querySelectorAll('#sourcesBody .coeff-text').forEach(el => {
+    el.style.fontSize = Math.max(10, Math.round(17 * scale)) + 'px';
+  });
+  document.querySelectorAll('#sourcesBody .z-text').forEach(el => {
+    el.style.fontSize = Math.max(9, Math.round(15 * scale)) + 'px';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GENERIC HELPERS
+═══════════════════════════════════════════════════════════════════════ */
 function applyT(el, t) {
   if (!el || !t) return;
   if (t.font)          el.style.fontFamily    = t.font;
@@ -835,26 +749,9 @@ function applyTableStyle(boxEl) {
   boxEl.style.borderRadius = ts.boxBorderRadius;
 }
 
-function applyLayout() {
-  const card = document.getElementById('card');
-  const wrap = document.getElementById('donutWrap');
-  const info = document.getElementById('infoCol');
-  const cW = card.offsetWidth, cH = card.offsetHeight;
-  const d  = (LAYOUT.donutDiameter / 100) * cW;
-  const cx = (LAYOUT.donutCenterX  / 100) * cW;
-  const cy = (LAYOUT.donutCenterY  / 100) * cH;
-  wrap.style.width  = d + 'px';  wrap.style.height = d + 'px';
-  wrap.style.left   = (cx - d / 2) + 'px';
-  wrap.style.top    = (cy - d / 2) + 'px';
-  info.style.left   = ((LAYOUT.panelLeft   / 100) * cW) + 'px';
-  info.style.top    = ((LAYOUT.panelTop    / 100) * cH) + 'px';
-  info.style.right  = ((LAYOUT.panelRight  / 100) * cW) + 'px';
-  info.style.bottom = ((LAYOUT.panelBottom / 100) * cH) + 'px';
-}
-
 function applyVerdictPos(vb, verdictType) {
-  const card = document.getElementById('card');
-  const cW = card.offsetWidth, cH = card.offsetHeight;
+  const cardEl = document.getElementById('card');
+  const cW = cardEl.offsetWidth, cH = cardEl.offsetHeight;
   const vp = VERDICT_POS;
   applyT(vb, TYPOGRAPHY.verdict);
   switch (verdictType) {
@@ -864,11 +761,9 @@ function applyVerdictPos(vb, verdictType) {
   }
   vb.style.padding   = `${vp.paddingV}px ${vp.paddingH}px`;
   vb.style.textAlign = vp.textAlign;
-  if (vp.minWidth  > 0) vb.style.minWidth  = vp.minWidth  + 'px';
-  if (vp.minHeight > 0) vb.style.minHeight = vp.minHeight + 'px';
+  /* Measure then position */
   vb.style.visibility = 'hidden';
-  vb.style.left = '0'; vb.style.top = '0';
-  vb.style.right = ''; vb.style.bottom = '';
+  vb.style.left = '0'; vb.style.top = '0'; vb.style.right = ''; vb.style.bottom = '';
   const bW = vb.offsetWidth, bH = vb.offsetHeight;
   vb.style.visibility = '';
   const ax = (vp.anchorX / 100) * cW;
@@ -876,86 +771,70 @@ function applyVerdictPos(vb, verdictType) {
   const a  = vp.anchor || 'top-right';
   const hP = a.includes('left') ? 0 : a.includes('right') ? 1 : 0.5;
   const vP = a.includes('bottom') ? 1 : 0;
-  vb.style.left   = (ax - hP * bW) + 'px';
-  vb.style.top    = (ay - vP * bH) + 'px';
-  vb.style.right  = '';
-  vb.style.bottom = '';
+  vb.style.left = (ax - hP * bW) + 'px'; vb.style.top = (ay - vP * bH) + 'px';
+  vb.style.right = ''; vb.style.bottom = '';
 }
 
 function setFormatBadge(text, cls) {
   const b = document.getElementById('formatBadge');
   if (!text) { b.style.display = 'none'; return; }
-  b.textContent = text;
-  b.className   = cls;
-  b.style.display = 'inline-block';
+  b.textContent = text; b.className = cls; b.style.display = 'inline-block';
 }
-
 function showBadgeError(msg) {
-  setFormatBadge('✕ ' + msg, 'error');
+  const s = msg.length > 50 ? msg.slice(0,48) + '…' : msg;
+  setFormatBadge('✕ ' + s, 'error');
 }
 
 function updateSourceColors(pal) {
   document.querySelectorAll('#sourcesBody .swatch').forEach((sw, i) => {
-    sw.style.background = i < pal.length ? pal[i] : '#cccccc';
+    sw.style.background = i < pal.length ? pal[i] : '#888888';
   });
 }
 
 function softBreak(s) { return s.replace(/([_.\-])/g, '$1<wbr>'); }
 
 function zColor(z) {
-  const absZ = Math.abs(z);
-  return absZ >= CFG.zGoodMin ? Z_COLORS.zGood
-       : absZ >= CFG.zMidMin  ? Z_COLORS.zMid
-       : Z_COLORS.zBad;
+  const a = Math.abs(z);
+  return a >= CFG.zGoodMin ? Z_COLORS.zGood : a >= CFG.zMidMin ? Z_COLORS.zMid : Z_COLORS.zBad;
 }
 
+/* Per-row typography merge (supports sourcesRowOverrides) */
 function mergeRow(i) {
   const base = {
-    nameFont:           TYPOGRAPHY.sourcesName.font,
-    nameFontSize:       TYPOGRAPHY.sourcesName.fontSize,
-    nameFontWeight:     TYPOGRAPHY.sourcesName.fontWeight,
-    nameFontStyle:      TYPOGRAPHY.sourcesName.fontStyle      || 'normal',
-    nameColor:          TYPOGRAPHY.sourcesName.color,
-    nameLetterSpacing:  TYPOGRAPHY.sourcesName.letterSpacing  || '0',
-    nameLineHeight:     TYPOGRAPHY.sourcesName.lineHeight      || '1.35',
-    nameAlign:          TYPOGRAPHY.sourcesName.align,
-    coeffFont:          TYPOGRAPHY.sourcesCoeff.font,
-    coeffFontSize:      TYPOGRAPHY.sourcesCoeff.fontSize,
-    coeffFontWeight:    TYPOGRAPHY.sourcesCoeff.fontWeight,
-    coeffFontStyle:     TYPOGRAPHY.sourcesCoeff.fontStyle     || 'normal',
-    coeffColor:         TYPOGRAPHY.sourcesCoeff.color,
-    coeffLetterSpacing: TYPOGRAPHY.sourcesCoeff.letterSpacing || '0',
-    coeffAlign:         TYPOGRAPHY.sourcesCoeff.align,
-    zFont:              TYPOGRAPHY.sourcesZ.font,
-    zFontSize:          TYPOGRAPHY.sourcesZ.fontSize,
-    zFontWeight:        TYPOGRAPHY.sourcesZ.fontWeight,
-    zFontStyle:         TYPOGRAPHY.sourcesZ.fontStyle         || 'normal',
-    zLetterSpacing:     TYPOGRAPHY.sourcesZ.letterSpacing     || '0',
-    zGap:               TYPOGRAPHY.sourcesZ.zGap,
+    nameFont: TYPOGRAPHY.sourcesName.font, nameFontSize: TYPOGRAPHY.sourcesName.fontSize,
+    nameFontWeight: TYPOGRAPHY.sourcesName.fontWeight, nameFontStyle: 'normal',
+    nameColor: TYPOGRAPHY.sourcesName.color, nameLetterSpacing: '0',
+    nameLineHeight: '1.35', nameAlign: TYPOGRAPHY.sourcesName.align,
+    coeffFont: TYPOGRAPHY.sourcesCoeff.font, coeffFontSize: TYPOGRAPHY.sourcesCoeff.fontSize,
+    coeffFontWeight: TYPOGRAPHY.sourcesCoeff.fontWeight, coeffFontStyle: 'normal',
+    coeffColor: TYPOGRAPHY.sourcesCoeff.color, coeffLetterSpacing: '0',
+    coeffAlign: TYPOGRAPHY.sourcesCoeff.align,
+    zFont: TYPOGRAPHY.sourcesZ.font, zFontSize: TYPOGRAPHY.sourcesZ.fontSize,
+    zFontWeight: TYPOGRAPHY.sourcesZ.fontWeight, zFontStyle: 'normal', zLetterSpacing: '0',
   };
   const ov = TYPOGRAPHY.sourcesRowOverrides.find(r => r.index === i);
   return ov ? Object.assign({}, base, ov) : base;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   VERDICT LOGIC
-═══════════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   VERDICT
+═══════════════════════════════════════════════════════════════════════ */
 function resolveVerdict(weights, sesPct, zScores, pValue) {
   const c = VERDICT_CFG;
   const minAbsZ   = Math.min(...zScores.map(z => Math.abs(z)));
   const minWeight = Math.min(...weights);
-  const relSEs = sesPct
-    .map((se, i) => weights[i] >= c.minWtForSE ? se / weights[i] : null)
-    .filter(v => v !== null);
-  const maxRelSE = relSEs.length > 0 ? Math.max(...relSEs) : 0;
-  if (pValue < c.pValueFail || minAbsZ < c.minZFail || minWeight < c.minWeightFail || maxRelSE > c.maxRelSEFail) return 'fail';
-  if (minAbsZ >= c.minZStrong && maxRelSE <= c.maxRelSEStrong && weights.length <= c.maxSourcesStrong) return 'pass';
+  const relSEs    = sesPct.map((se, i) => weights[i] >= c.minWtForSE ? se / weights[i] : null).filter(v => v !== null);
+  const maxRelSE  = relSEs.length ? Math.max(...relSEs) : 0;
+  if (pValue < c.pValueFail || minAbsZ < c.minZFail || minWeight < c.minWeightFail || maxRelSE > c.maxRelSEFail)
+    return 'fail';
+  if (minAbsZ >= c.minZStrong && maxRelSE <= c.maxRelSEStrong && weights.length <= c.maxSourcesStrong)
+    return 'pass';
   return 'weak';
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════
    PARSERS
-═══════════════════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════════════════════ */
 function isRawFormat(t) { return /left pops\s*:/i.test(t) && /right pops\s*:/i.test(t); }
 
 function parseRaw(text) {
@@ -970,7 +849,6 @@ function parseRaw(text) {
   }
   if (lp.length < 2) throw new Error('Need target + ≥1 source in left pops');
   const target = lp[0], sources = lp.slice(1);
-
   const ri = lines.findIndex(l => /^\s*right pops\s*:/i.test(l));
   const rp = [];
   if (ri >= 0) {
@@ -980,7 +858,6 @@ function parseRaw(text) {
       const m = l.match(/^(\S+)\s+\d+/); if (m) rp.push(m[1]);
     }
   }
-
   let pValue = NaN, chisq = NaN;
   const ci = lines.findIndex(l => /^\s*codimension\s+1\b/.test(l));
   if (ci >= 0) {
@@ -995,18 +872,15 @@ function parseRaw(text) {
       if (m && parseInt(m[1]) > 0) { chisq = parseFloat(m[2]); pValue = parseFloat(m[3]); break; }
     }
   }
-  if (isNaN(pValue)) throw new Error('Could not parse p-value (need codimension 1 block)');
-
+  if (isNaN(pValue)) throw new Error('Could not parse p-value (codimension 1 block needed)');
   const cl = lines.find(l => /best coefficients:/.test(l));
   if (!cl) throw new Error('"best coefficients:" not found');
   const coeffs = cl.replace('best coefficients:','').trim().split(/\s+/).map(Number).filter(v=>!isNaN(v));
   if (coeffs.length !== sources.length) throw new Error(`Coefficients (${coeffs.length}) ≠ sources (${sources.length})`);
-
   const sl = lines.find(l => /std\.\s*errors:/.test(l));
   if (!sl) throw new Error('"std. errors:" not found');
   const ses = sl.replace(/std\.\s*errors:/,'').trim().split(/\s+/).map(Number).filter(v=>!isNaN(v));
   if (ses.length !== sources.length) throw new Error(`SEs (${ses.length}) ≠ sources (${sources.length})`);
-
   const tot = coeffs.reduce((a,b)=>a+b,0);
   return {
     target, sources,
@@ -1028,9 +902,9 @@ function parseSummary(text) {
   const chl = lines.find(l=>l.startsWith('chisq:'));
   if (!pvl) throw new Error('P value not found');
   if (!chl)  throw new Error('chisq not found');
-  const pValue = parseFloat(pvl.replace('P value:','').trim());
-  const chisq  = parseFloat(chl.replace('chisq:','').trim());
-  const rgl    = lines.find(l=>l.startsWith('Rights:'));
+  const pValue    = parseFloat(pvl.replace('P value:','').trim());
+  const chisq     = parseFloat(chl.replace('chisq:','').trim());
+  const rgl       = lines.find(l=>l.startsWith('Rights:'));
   const outgroups = rgl ? rgl.replace('Rights:','').trim() : '';
   const sources=[],weights=[],sesPct=[],zScores=[];
   for (let i = ws+1; i < lines.length; i++) {
@@ -1046,94 +920,100 @@ function parseSummary(text) {
   }
   if (!sources.length) throw new Error('No populations found in Weights block');
   const tot = weights.reduce((a,b)=>a+b,0);
-  return {
-    target, sources,
-    weights: weights.map(w=>(w/tot)*100),
-    sesPct, zScores, pValue, chisq, outgroups,
-  };
+  return { target, sources, weights: weights.map(w=>(w/tot)*100), sesPct, zScores, pValue, chisq, outgroups };
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════════════
+   LABEL COLOUR HELPER — picks black or white for readability on segment
+═══════════════════════════════════════════════════════════════════════ */
+function labelColorFor(hex) {
+  if (!hex || hex.length < 7) return '#ffffff';
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return (0.299*r + 0.587*g + 0.114*b) / 255 > 0.55 ? '#111111' : '#ffffff';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    MAIN RENDER
-═══════════════════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════════════════════ */
 function parseAndDraw() {
-  const text = document.getElementById('qpadmText').value.trim();
+  const text   = document.getElementById('qpadmText').value.trim();
   const cardEl = document.getElementById('card');
   cardEl.style.display = 'none';
   document.getElementById('downloadBtn').style.display = 'none';
-
   if (!text) { setFormatBadge('', ''); return; }
 
   try {
-    /* ── Parse ── */
+    /* Parse */
     let parsed, fmtTxt, fmtCls;
     if (isRawFormat(text)) { parsed = parseRaw(text);     fmtTxt = '⚙ Raw log'; fmtCls = 'raw'; }
     else                   { parsed = parseSummary(text); fmtTxt = '✓ Summary'; fmtCls = ''; }
     setFormatBadge(fmtTxt, fmtCls);
-
-    /* ── Save prefs ── */
     savePref('qpviz_theme',   currentTheme);
     savePref('qpviz_palette', document.getElementById('paletteSelect').value);
 
     const { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups } = parsed;
+    if (sources.length > 6) console.warn('More than 6 sources — excess rendered in grey.');
 
-    if (sources.length > 6) console.warn('qpAdm model uses >6 sources — excess sources rendered in grey.');
-
-    /* ── Card background ── */
+    /* Card appearance */
     cardEl.style.background  = CARD.bgColor;
     cardEl.style.aspectRatio = CARD.aspectRatio;
     document.getElementById('cardBg').style.background = CARD.bgColor;
 
-    /* ── Header ── */
-    const hp = TYPOGRAPHY.headerPadding;
-    document.getElementById('cardHeader').style.padding = `${hp.top} ${hp.sides} ${hp.bottom} ${hp.sides}`;
+    /* Stacked class */
+    const prof = LAYOUT_PROFILES[activeLayout] || LAYOUT_PROFILES['landscape-wide'];
+    cardEl.classList.toggle('stacked', !!prof.stacked);
 
+    /* Header */
+    const hp = TYPOGRAPHY.headerPadding;
+    document.getElementById('cardHeader').style.padding =
+      `${hp.top} ${hp.sides} ${hp.bottom} ${hp.sides}`;
     const tEl = document.getElementById('cardTarget');
     tEl.textContent = 'Target: ' + target;
     applyT(tEl, TYPOGRAPHY.target);
 
-    /* ── Stat line ── */
-    const pd   = pValue < 0.0001 ? pValue.toExponential(4) : parseFloat(pValue.toPrecision(7)).toString();
+    /* Stat line */
+    const pd = pValue < 0.0001 ? pValue.toExponential(4) : parseFloat(pValue.toPrecision(7)).toString();
     const slEl = document.getElementById('statLine');
     let statHTML = `χ² = ${chisq.toFixed(2)}<span class="stat-sep"> / </span>p = ${pd}`;
-    if (weights.some(w => w < 0)) {
-      statHTML += ` <span style="color:#ef4444;font-size:0.7em;font-weight:700;vertical-align:middle;">⚠ negative weight</span>`;
-    }
+    if (weights.some(w => w < 0))
+      statHTML += ` <span style="color:#ef4444;font-size:0.7em;font-weight:700;vertical-align:middle;">⚠ neg. weight</span>`;
     slEl.innerHTML = statHTML;
     applyT(slEl, TYPOGRAPHY.stat);
     slEl.style.marginTop = TYPOGRAPHY.stat.marginTop || '2px';
 
-    /* ── Show card (needed before measurements) ── */
+    /* Show card before any measurements */
     cardEl.style.display = 'block';
 
-    /* ── Verdict ── */
+    /* Verdict */
     const verdictType = resolveVerdict(weights, sesPct, zScores, pValue);
-    const verdictText = { pass: 'PASS', weak: 'PASS*', fail: 'FAIL' }[verdictType];
     const vb = document.getElementById('verdictBadge');
-    vb.textContent     = verdictText;
+    vb.textContent     = { pass: 'PASS', weak: 'PASS*', fail: 'FAIL' }[verdictType];
     vb.dataset.verdict = verdictType;
     vb.title = {
-      pass: 'Strong pass — p ≥ 0.05, all |Z| ≥ 3, low SE ratio, ≤4 sources',
-      weak: 'Marginal pass — p ≥ 0.05 but borderline Z-scores or SE. Interpret cautiously.',
-      fail: 'FAIL — p < 0.05, |Z| < 2, negative weight, or large SE ratio',
+      pass: 'Strong pass: p ≥ 0.05, all |Z| ≥ 3, low SE ratio, ≤ 4 sources',
+      weak: 'Marginal pass: p ≥ 0.05 but borderline Z or SE — interpret cautiously',
+      fail: 'FAIL: p < 0.05, |Z| < 2, negative weight, or large SE ratio',
     }[verdictType];
     applyVerdictPos(vb, verdictType);
 
-    /* ── Layout ── */
+    /* Layout */
     applyLayout();
 
-    /* ── Table borders ── */
+    /* Table borders */
     applyTableStyle(document.getElementById('sourcesBox'));
     applyTableStyle(document.getElementById('outgroupsBox'));
 
-    /* ── Colors ── */
+    /* Colours */
     const pidx   = parseInt(document.getElementById('paletteSelect').value);
     const pal    = colorPalettes[pidx] || colorPalettes[0];
     const colors = sources.map((_, i) => i < pal.length ? pal[i] : '#888888');
 
-    /* ── Donut ── */
+    /* ─── Donut chart ─── */
     const ctx = document.getElementById('donutChart').getContext('2d');
     if (chartObj) chartObj.destroy();
+
     chartObj = new Chart(ctx, {
       type: 'doughnut',
       data: {
@@ -1150,17 +1030,31 @@ function parseAndDraw() {
         responsive: true,
         cutout: CFG.donutCutout,
         rotation: CFG.donutStartAngle,
-        circumference: CFG.donutClockwise ? 360 : -360,
+        circumference: 360,
         layout: { padding: CFG.donutHoverOff },
         plugins: {
           legend: { display: false },
           tooltip: { callbacks: { label: c => ` ${c.label}: ${c.parsed.toFixed(1)}%` } },
+          /* Datalabels — show % inside each segment */
+          datalabels: {
+            display: (ctx) => showLabels && ctx.dataset.data[ctx.dataIndex] > 5,
+            color:   (ctx) => labelColorFor(colors[ctx.dataIndex]),
+            font:    (ctx) => ({
+              family: 'Roboto, sans-serif',
+              weight: 700,
+              /* Size scales with segment size, capped 9–15 px */
+              size: Math.max(9, Math.min(15, Math.round(ctx.dataset.data[ctx.dataIndex] * 0.38))),
+            }),
+            formatter: (val) => val.toFixed(1) + '%',
+            textShadowBlur:  4,
+            textShadowColor: 'rgba(0,0,0,0.4)',
+          },
         },
         animation: { animateRotate: true, duration: 550 },
       },
     });
 
-    /* ══ SOURCES TABLE ══════════════════════════════════════════════════ */
+    /* ─── Sources table ─── */
     const ts = TABLE_STYLE;
     const sh = TYPOGRAPHY.sourcesHeader;
     const zT = TYPOGRAPHY.sourcesZ;
@@ -1169,15 +1063,14 @@ function parseAndDraw() {
     document.getElementById('sourcesHead').innerHTML = `
       <tr>
         <th colspan="3" style="
-          font-family:${sh.font};font-size:${sh.fontSize};
-          font-weight:${sh.fontWeight};font-style:${sh.fontStyle||'normal'};
-          color:${sh.color};letter-spacing:${sh.letterSpacing};
-          line-height:${sh.lineHeight};text-align:${sh.align};
-          text-transform:${sh.textTransform||'uppercase'};
+          font-family:${sh.font};font-size:${sh.fontSize};font-weight:${sh.fontWeight};
+          color:${sh.color};letter-spacing:${sh.letterSpacing};line-height:${sh.lineHeight};
+          text-align:${sh.align};text-transform:${sh.textTransform||'uppercase'};
           background:${ts.headerBg};
           border-bottom:${ts.headerBorderWidth} solid ${ts.headerBorderColor};
-          padding:5px 10px;white-space:nowrap;
-        ">${sh.text}</th>
+          padding:5px 10px;white-space:nowrap;">
+          ${sh.text}
+        </th>
       </tr>`;
 
     let srcHTML = '';
@@ -1190,40 +1083,28 @@ function parseAndDraw() {
       const isLast = i === sources.length - 1;
       const rowBdr = isLast ? '' : `border-bottom:${ts.rowBorderWidth} solid ${ts.rowBorderColor};`;
 
-      const zHtml = `<span style="
-          font-family:${rs.zFont};font-size:${rs.zFontSize};
-          font-weight:${rs.zFontWeight};font-style:${rs.zFontStyle};
-          letter-spacing:${rs.zLetterSpacing};color:${zCol};
-          white-space:nowrap;vertical-align:baseline;
-        ">(${zT.zPrefix}${z.toFixed(2)})</span>`;
-
-      const zSepHtml  = `<span style="display:inline-block;width:${zT.zSepPx}px;"></span>`;
-      const colonHtml = `<span style="font-family:${sc.colonFont};color:${sc.colonColor};white-space:pre;">${sc.colonText}</span>`;
-      const coeffHtml = `<span style="
-          font-family:${rs.coeffFont};font-size:${rs.coeffFontSize};
-          font-weight:${rs.coeffFontWeight};font-style:${rs.coeffFontStyle};
-          color:${rs.coeffColor};letter-spacing:${rs.coeffLetterSpacing};
-          white-space:nowrap;vertical-align:baseline;
-        ">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
+      const zHtml   = `<span class="z-text" style="font-family:${rs.zFont};font-size:${rs.zFontSize};font-weight:${rs.zFontWeight};color:${zCol};white-space:nowrap;vertical-align:baseline;">(${zT.zPrefix}${z.toFixed(2)})</span>`;
+      const zSep    = `<span style="display:inline-block;width:${zT.zSepPx}px;"></span>`;
+      const colHtml = `<span style="font-family:${sc.colonFont};color:${sc.colonColor};white-space:pre;">${sc.colonText}</span>`;
+      const coHtml  = `<span class="coeff-text" style="font-family:${rs.coeffFont};font-size:${rs.coeffFontSize};font-weight:${rs.coeffFontWeight};color:${rs.coeffColor};white-space:nowrap;vertical-align:baseline;">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
 
       srcHTML += `<tr style="background:${rowBg};">
         <td class="col-sw" style="width:44px;padding:5px 0 5px 10px !important;vertical-align:middle;${rowBdr}background:${cellBg};">
           <span class="swatch" style="background:${colors[i]};width:${SWATCH.width};height:${SWATCH.height};border-radius:${SWATCH.radius};border:${SWATCH.border};display:inline-block;"></span>
         </td>
         <td class="col-name" style="text-align:${rs.nameAlign};padding:5px 4px !important;vertical-align:middle;${rowBdr}background:${cellBg};">
-          <span class="pop-name" style="font-family:${rs.nameFont};font-size:${rs.nameFontSize};font-weight:${rs.nameFontWeight};font-style:${rs.nameFontStyle};color:${rs.nameColor};letter-spacing:${rs.nameLetterSpacing};line-height:${rs.nameLineHeight};">${softBreak(pop)}</span>
+          <span class="pop-name" style="font-family:${rs.nameFont};font-size:${rs.nameFontSize};font-weight:${rs.nameFontWeight};color:${rs.nameColor};line-height:${rs.nameLineHeight};">${softBreak(pop)}</span>
         </td>
-        <td class="col-data" style="text-align:${rs.coeffAlign};white-space:nowrap;padding:5px 10px;vertical-align:middle;${rowBdr}background:${cellBg};">${colonHtml}${coeffHtml}${zSepHtml}${zHtml}</td>
+        <td class="col-data" style="text-align:${rs.coeffAlign};white-space:nowrap;padding:5px 10px;vertical-align:middle;${rowBdr}background:${cellBg};">${colHtml}${coHtml}${zSep}${zHtml}</td>
       </tr>`;
     });
     document.getElementById('sourcesBody').innerHTML = srcHTML;
 
-    /* ── Outgroups ── */
+    /* ─── Outgroups ─── */
     const ogBox = document.getElementById('outgroupsBox');
     const ogTd  = document.getElementById('outgroupsTd');
     const ogH   = document.getElementById('hdrOutgroups');
     const ogh   = TYPOGRAPHY.outgroupsHeader;
-    const ogc   = TYPOGRAPHY.outgroupsCell;
     if (outgroups) {
       ogH.textContent = ogh.text;
       applyT(ogH, ogh);
@@ -1231,7 +1112,7 @@ function parseAndDraw() {
       ogH.style.padding       = '5px 10px';
       ogH.style.background    = ts.headerBg;
       ogH.style.borderBottom  = `${ts.headerBorderWidth} solid ${ts.headerBorderColor}`;
-      applyT(ogTd, ogc);
+      applyT(ogTd, TYPOGRAPHY.outgroupsCell);
       ogTd.style.padding    = '5px 10px';
       ogTd.style.background = ts.cellBg;
       ogTd.textContent      = outgroups;
@@ -1240,52 +1121,67 @@ function parseAndDraw() {
       ogBox.style.display = 'none';
     }
 
-    /* ── Watermark ── */
+    /* Watermark (empty, but styled) */
     document.getElementById('watermark').textContent = '';
     applyT(document.getElementById('watermark'), TYPOGRAPHY.watermark);
+
+    /* Second layout pass after paint for accurate measurements */
+    requestAnimationFrame(() => {
+      applyLayout();
+      applyVerdictPos(vb, verdictType);
+    });
 
     document.getElementById('downloadBtn').style.display = 'inline-block';
 
   } catch(e) {
-    showBadgeError(e.message.length > 40 ? e.message.slice(0,38)+'…' : e.message);
+    showBadgeError(e.message);
     console.error(e);
   }
 }
 
-/* ══ PALETTE CHANGE ═════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   LIVE PALETTE SWITCH (no re-parse)
+═══════════════════════════════════════════════════════════════════════ */
 document.getElementById('paletteSelect').addEventListener('change', () => {
   savePref('qpviz_palette', document.getElementById('paletteSelect').value);
   if (!chartObj) return;
   const pidx   = parseInt(document.getElementById('paletteSelect').value);
   const pal    = colorPalettes[pidx] || colorPalettes[0];
-  const labels = chartObj.data.labels;
-  const colors = labels.map((_, i) => i < pal.length ? pal[i] : '#888888');
+  const colors = chartObj.data.labels.map((_, i) => i < pal.length ? pal[i] : '#888888');
   chartObj.data.datasets[0].backgroundColor      = colors;
   chartObj.data.datasets[0].hoverBackgroundColor = colors;
   chartObj.update();
   updateSourceColors(pal);
 });
 
-/* ══ RESIZE ═════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   RESIZE (debounced)
+═══════════════════════════════════════════════════════════════════════ */
+let _rTimer;
 window.addEventListener('resize', () => {
-  if (document.getElementById('card').style.display === 'none') return;
-  applyLayout();
-  const vb = document.getElementById('verdictBadge');
-  if (vb.textContent) applyVerdictPos(vb, vb.dataset.verdict || 'fail');
+  clearTimeout(_rTimer);
+  _rTimer = setTimeout(() => {
+    if (document.getElementById('card').style.display === 'none') return;
+    applyLayout();
+    const vb = document.getElementById('verdictBadge');
+    if (vb.textContent) applyVerdictPos(vb, vb.dataset.verdict || 'fail');
+  }, 60);
 });
 
-/* ══ KEYBOARD SHORTCUTS ══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+═══════════════════════════════════════════════════════════════════════ */
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); parseAndDraw(); }
   if ((e.ctrlKey || e.metaKey) && e.key === 'o')     { e.preventDefault(); document.getElementById('fileInput').click(); }
 });
-
-/* ══ AUTO-PARSE ON PASTE ═════════════════════════════════════════════════ */
 document.getElementById('qpadmText').addEventListener('paste', () => {
   setTimeout(parseAndDraw, 80);
 });
 
-/* ══ DOWNLOAD ════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   DOWNLOAD
+═══════════════════════════════════════════════════════════════════════ */
 function downloadImage() {
   const card = document.getElementById('card');
   card.style.overflow = 'hidden';
@@ -1299,9 +1195,8 @@ function downloadImage() {
     });
 }
 
-/* ══ INIT ════════════════════════════════════════════════════════════════ */
+/* Init */
 loadPrefs();
-
 </script>
 </body>
 </html>
