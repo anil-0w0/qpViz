@@ -93,6 +93,7 @@
     .btn-upload:hover { border-color: #38bdf8; color: #38bdf8; }
     .btn-dl { background: var(--ui-accent); color: #fff; display: none; }
     .btn-dl:hover { background: var(--ui-accent-h); }
+    .btn-dl:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-toggle {
       background: var(--ui-surface); color: var(--ui-muted);
       border: 1px solid var(--ui-border); font-size: 11.5px;
@@ -323,7 +324,7 @@ Ctrl+Enter → generate   ·   Ctrl+O → upload file"></textarea>
     <div id="statLine"></div>
     <div class="verdict-badge" id="verdictBadge"></div>
   </div>
-  <div id="donutWrap"><canvas id="donutChart"></canvas></div>
+  <div id="donutWrap"><canvas id="donutChart" role="img"></canvas></div>
   <div class="info-col" id="infoCol">
     <!-- Sources box: desktop renders a <table>, mobile renders stacked div cards -->
     <div class="data-box" id="sourcesBox"></div>
@@ -409,6 +410,8 @@ const VERDICT_CFG = {
 
 /* ═══════════════════════════════════════════════════════════════════════
    Z-SCORE TIER COLOURS
+   Note: these are mutated by applyTheme() — do not read them before
+   the theme is applied. Dark theme uses higher-contrast variants.
 ═══════════════════════════════════════════════════════════════════════ */
 const Z_COLORS = { zGood: '#16a34a', zMid: '#ca8a04', zBad: '#dc2626' };
 
@@ -513,7 +516,8 @@ const MOBILE_VIEW = {
   verdictOffsetY:         8,                          /* from donut top-right, px (+down / -up) */
   verdictRightInsetPx:    25,                         /* right inset when verdictAnchorX = 'card-right' */
   donutPctLabelSizePx:    30,                         /* mobile slice % label size (px) */
-  tooltipSizeScale:       3,                          /* mobile donut tooltip scale (3x base) */
+  /* FIX: reduced from 3 to 2.0 — tooltips at 3× base (36px) overflowed the card on mobile */
+  tooltipSizeScale:       2.0,                        /* mobile donut tooltip scale */
   donutSizeScale:         0.94,                       /* base mobile donut scale */
   donutShiftYPx:          0,                          /* base mobile donut vertical shift */
   /* Adaptive anti-congestion rule for mobile:
@@ -690,6 +694,8 @@ const TYPOGRAPHY = {
 
 /* ═══════════════════════════════════════════════════════════════════════
    THEME SYSTEM
+   Note: Z_COLORS variants are included so applyTheme() can update them
+   for better contrast on dark cards (light greens/yellows/reds).
 ═══════════════════════════════════════════════════════════════════════ */
 const THEMES = {
   light: {
@@ -712,6 +718,8 @@ const THEMES = {
       weakBg: '#fefce8', weakText: '#ca8a04',
       failBg: '#FFFAFA', failText: '#dc2626',
     },
+    /* Z-score tier colours for light cards — standard saturated tones */
+    zColors: { zGood: '#16a34a', zMid: '#ca8a04', zBad: '#dc2626' },
   },
   dark: {
     cardBg: '#1a1a1a', donutBorderC: '#2a2a2a',
@@ -733,6 +741,8 @@ const THEMES = {
       weakBg: '#2a2000', weakText: '#fbbf24',
       failBg: '#2e1010', failText: '#f87171',
     },
+    /* Z-score tier colours for dark cards — lighter/higher-contrast variants */
+    zColors: { zGood: '#4ade80', zMid: '#fbbf24', zBad: '#f87171' },
   },
 };
 
@@ -759,6 +769,8 @@ function applyTheme(mode) {
   VERDICT_POS.passBg   = t.verdict.passBg;   VERDICT_POS.passText = t.verdict.passText;
   VERDICT_POS.weakBg   = t.verdict.weakBg;   VERDICT_POS.weakText = t.verdict.weakText;
   VERDICT_POS.failBg   = t.verdict.failBg;   VERDICT_POS.failText = t.verdict.failText;
+  /* FIX: mutate Z_COLORS so Z-score labels always contrast against the card background */
+  if (t.zColors) Object.assign(Z_COLORS, t.zColors);
 }
 
 function onThemeChange(val) {
@@ -968,11 +980,15 @@ function onRatioChange(val) {
   if (vb.textContent) requestAnimationFrame(() => applyVerdictPos(vb, vb.dataset.verdict || 'fail'));
 }
 
+/* FIX: clamp the displayed value in the input field so out-of-range numbers
+   don't visually persist after the handler returns early. */
 function onCutoutChange(val) {
   const v = parseInt(val);
-  if (isNaN(v) || v < 20 || v > 90) return;
-  CFG.donutCutout = v + '%';
-  savePref('qpviz_cutout', v);
+  if (isNaN(v)) return;
+  const clamped = Math.min(90, Math.max(20, v));
+  document.getElementById('cutoutInput').value = clamped;
+  CFG.donutCutout = clamped + '%';
+  savePref('qpviz_cutout', clamped);
   if (chartObj) { chartObj.options.cutout = CFG.donutCutout; chartObj.update(); }
 }
 
@@ -1051,8 +1067,11 @@ function handleFileUpload(event) {
   event.target.value = '';
 }
 
+/* FIX: confirm before silently replacing user's existing input */
 function loadExample() {
-  document.getElementById('qpadmText').value =
+  const ta = document.getElementById('qpadmText');
+  if (ta.value.trim() && !confirm('Replace current input with the example?')) return;
+  ta.value =
 `Target: Hungary_MBA
 Weights:
 Yamnaya_Samara - 42.3% SE: 4.12% Z: 10.27
@@ -1216,6 +1235,9 @@ function applyTableStylesForCurrentLayout() {
  * applyVerdictPos
  * Desktop: top-right (per VERDICT_POS config)
  * Mobile (isMobileLayout): near donut top-right (below stats region)
+ *
+ * FIX: use getBoundingClientRect() with offsetWidth/Height fallback so
+ * dimensions are still available when paint is suppressed (hidden tab, etc.)
  */
 function applyVerdictPos(vb, verdictType) {
   const cardEl = document.getElementById('card');
@@ -1247,9 +1269,13 @@ function applyVerdictPos(vb, verdictType) {
   if (vp.minWidth  > 0) vb.style.minWidth  = vp.minWidth  + 'px';
   if (vp.minHeight > 0) vb.style.minHeight = vp.minHeight + 'px';
 
+  /* FIX: use getBoundingClientRect (more reliable than offsetWidth during
+     suppressed paint); fall back to offsetWidth/Height if rect is zero. */
   vb.style.visibility = 'hidden';
   vb.style.left = '0'; vb.style.top = '0'; vb.style.right = ''; vb.style.bottom = '';
-  const bW = vb.offsetWidth, bH = vb.offsetHeight;
+  const bRect = vb.getBoundingClientRect();
+  const bW = (bRect.width  > 0 ? bRect.width  : vb.offsetWidth)  || 60;
+  const bH = (bRect.height > 0 ? bRect.height : vb.offsetHeight) || 28;
   vb.style.visibility = '';
 
   let ax = (anchorX / 100) * cW;
@@ -1295,6 +1321,7 @@ function updateSourceColors(origOrderColors) {
   });
 }
 
+/* HTML-only helper — do not use with textContent or setAttribute */
 function softBreak(s) { return s.replace(/([_.\-])/g, '$1<wbr>'); }
 
 function zColor(z) {
@@ -1400,6 +1427,8 @@ function parseRaw(text) {
   if (ses.length !== sources.length) throw new Error(`SEs (${ses.length}) ≠ sources (${sources.length})`);
 
   const tot = coeffs.reduce((a,b)=>a+b,0);
+  /* FIX: guard against degenerate all-zero coefficient case */
+  if (tot === 0) throw new Error('All coefficients are zero — cannot normalise weights');
   return {
     target, sources,
     weights: coeffs.map(c=>(c/tot)*100),
@@ -1409,6 +1438,10 @@ function parseRaw(text) {
   };
 }
 
+/* FIX: the original regex used [\d.]+ for the weight value, which cannot
+   match negative numbers like -5.2. The separator ' - ' (space-dash-space)
+   is now matched explicitly with \s+-\s+ so the weight capture group can
+   safely use [-\d.]+ without ambiguity. */
 function parseSummary(text) {
   const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
   const tl = lines.find(l=>l.startsWith('Target:'));
@@ -1428,7 +1461,8 @@ function parseSummary(text) {
   for (let i = ws+1; i < lines.length; i++) {
     const l = lines[i];
     if (/^(P value:|chisq:|Rights:)/.test(l)) break;
-    const m = l.match(/^(.+?)\s*-\s*([\d.]+)%\s*SE:\s*([\d.]+)%\s*Z:\s*([-\d.]+)/);
+    /* Use \s+-\s+ for the separator so weight capture can be [-\d.]+ */
+    const m = l.match(/^(.+?)\s+-\s+([-\d.]+)%\s+SE:\s+([-\d.]+)%\s+Z:\s+([-\d.]+)/);
     if (m) {
       sources.push(m[1].trim());
       weights.push(parseFloat(m[2]));
@@ -1952,7 +1986,8 @@ function parseAndDraw() {
     savePref('qpviz_palette', document.getElementById('paletteSelect').value);
 
     const { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups } = parsed;
-    currentParsedData = { sources, weights, sesPct, zScores, outgroups };
+    /* FIX: store target in currentParsedData so downloadImage() can use it for the filename */
+    currentParsedData = { target, sources, weights, sesPct, zScores, outgroups };
     if (sources.length > 6) console.warn('More than 6 sources — excess rendered in grey (#888888).');
 
     /* Card background + ratio */
@@ -2028,7 +2063,13 @@ function parseAndDraw() {
 
     /* ─── Donut chart ─── */
     const ctx = document.getElementById('donutChart').getContext('2d');
-    if (chartObj) chartObj.destroy();
+
+    /* FIX: guard chartObj.destroy() so a failed draw phase never leaves a
+       dangling destroyed instance. null it before re-assigning. */
+    if (chartObj) {
+      try { chartObj.destroy(); } catch(e) { /* already destroyed */ }
+      chartObj = null;
+    }
 
     chartObj = new Chart(ctx, {
       type: 'doughnut',
@@ -2080,6 +2121,12 @@ function parseAndDraw() {
       },
     });
 
+    /* FIX: set aria-label on the canvas for screen-reader accessibility */
+    document.getElementById('donutChart').setAttribute(
+      'aria-label',
+      `Admixture donut chart for ${target}: ${sources.map((s,i)=>`${s} ${weights[i].toFixed(1)}%`).join(', ')}`
+    );
+
     /* Sources + outgroups re-render based on current view mode */
     renderInfoPanelsForCurrentLayout();
 
@@ -2107,6 +2154,10 @@ function parseAndDraw() {
    ── FIX (palette + direction state) ──
    When palette changes, rebuild originalColors from the new palette,
    then apply reversal state for chartColors so direction is preserved.
+
+   Note: this intentionally patches the chart in-place (no re-parse) for
+   instant feedback. The dual code path (parseAndDraw vs inline patch) is
+   deliberate — re-parsing on every palette click would be wasteful.
 ═══════════════════════════════════════════════════════════════════════ */
 document.getElementById('paletteSelect').addEventListener('change', () => {
   savePref('qpviz_palette', document.getElementById('paletteSelect').value);
@@ -2169,17 +2220,41 @@ document.addEventListener('keydown', e => {
 
 /* ═══════════════════════════════════════════════════════════════════════
    DOWNLOAD
+   FIX 1: use target name in filename instead of bare timestamp.
+   FIX 2: show a loading state ("Saving…") while html2canvas runs.
+   FIX 3: add .catch() so card.style.overflow is always restored and
+          the user gets feedback on failure instead of silent breakage.
 ═══════════════════════════════════════════════════════════════════════ */
 function downloadImage() {
   const card = document.getElementById('card');
+  const btn  = document.getElementById('downloadBtn');
+  const origLabel = btn.textContent;
+
+  /* Loading state */
+  btn.textContent = 'Saving…';
+  btn.disabled    = true;
+
+  /* Safe target name for filename (strip characters invalid in filenames) */
+  const targetName = (currentParsedData && currentParsedData.target)
+    ? currentParsedData.target.replace(/[^a-z0-9_\-]/gi, '_').replace(/_+/g, '_').replace(/^_|_$/g, '')
+    : 'export';
+
   card.style.overflow = 'hidden';
   html2canvas(card, { scale: 3, backgroundColor: CARD.bgColor, useCORS: true })
     .then(canvas => {
-      card.style.overflow = '';
       const a = document.createElement('a');
-      a.download = `qpViz_${Date.now()}.png`;
+      a.download = `qpViz_${targetName}_${Date.now()}.png`;
       a.href = canvas.toDataURL('image/png');
       a.click();
+    })
+    .catch(err => {
+      console.error('qpViz download failed:', err);
+      alert('Download failed — check the console for details. (This can happen if fonts are blocked by CORS.)');
+    })
+    .finally(() => {
+      card.style.overflow = '';
+      btn.textContent = origLabel;
+      btn.disabled    = false;
     });
 }
 
