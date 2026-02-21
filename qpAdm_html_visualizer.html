@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>qpViz — Admixture Visualization Tool</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&family=DM+Mono:wght@400;500&family=Fira+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -365,8 +365,8 @@ const LAYOUT_PROFILES = {
     stacked: false,
   },
   'square': {
-    donutCenterX: 50, donutCenterY: 38, donutDiameter: 52,
-    panelLeft: 4, panelTop: 65, panelRight: 4, panelBottom: 3,
+    donutCenterX: 50, donutCenterY: 35, donutDiameter: 50,
+    panelLeft: 4, panelTop: 60, panelRight: 4, panelBottom: 2,
     stacked: true,
   },
   'portrait': {
@@ -564,12 +564,33 @@ const SIGNATURE = {
   zIndex:        6,
 };
 
+/* Numeric-only typography (coeff/SE/Z + donut % labels) */
+const NUMERIC_TYPO = {
+  desktop: {
+    table: 'Roboto, sans-serif',                 /* default/standard/wide numerics */
+    donutPct: 'Roboto, sans-serif',              /* default/standard/wide donut % */
+  },
+  square: {
+    table: 'Roboto, sans-serif',                 /* default/standard/wide numerics */
+    donutPct: 'Roboto, sans-serif',              /* default/standard/wide donut % */
+  },
+  mobile: {
+    table: 'Fira Mono, DM Mono, monospace',     /* mobile numerics */
+    donutPct: 'Fira Mono, DM Mono, monospace',  /* mobile donut % */
+  },
+};
+
 /* ═══════════════════════════════════════════════════════════════════════
    SQUARE-VIEW TYPOGRAPHY & WIDTH
    Applied only when activeLayout === 'square'.
 ═══════════════════════════════════════════════════════════════════════ */
 const SQUARE_VIEW = {
-  tableWidthPercent:      70,                         /* reduce table block width in square view */
+  tableWidthPercent:      70,                         /* square sources-table minimum width (%) */
+  tableWidthDynamic:      true,                       /* auto-expand square sources-table when content overflows */
+  tableWidthBufferRatio:  1.2,                        /* expand to 20% more than required width */
+  preWrapWidthMaxPercent: 90,                         /* square: max width before allowing name/data row wrapping */
+  tableWidthMaxPercent:   100,                        /* cap square sources-table width (%) */
+  dynamicColumns:         true,                       /* square: let name/data columns auto-size to content */
   targetHeadingFontSize:  'clamp(44px, 5.4vw, 68px)', /* Target: ... heading */
   statFontSize:           'clamp(22px, 2.4vw, 36px)', /* χ² / p stats line */
   targetStatsGapPx:       16,                         /* vertical gap between target and stats in square */
@@ -580,22 +601,22 @@ const SQUARE_VIEW = {
   sourcesNameFontSize:    '25px',                     /* source name */
   sourcesNameFontWeight:  600,
   sourcesNameFontStyle:   'normal',
-  sourcesCoeffFontFamily: 'Roboto, sans-serif',       /* coeff ± SE font family */
+  sourcesCoeffFontFamily: NUMERIC_TYPO.square.table,  /* coeff ± SE font family */
   sourcesCoeffFontSize:   '25px',                     /* coeff ± SE */
   sourcesCoeffFontWeight: 500,
   sourcesCoeffFontStyle:  'normal',
-  sourcesZFontFamily:     'Roboto, sans-serif',       /* Z text font family */
+  sourcesZFontFamily:     NUMERIC_TYPO.square.table,  /* Z text font family */
   sourcesZFontSize:       '23px',                     /* Z text */
-  sourcesZFontWeight:     700,
+  sourcesZFontWeight:     500,
   sourcesZFontStyle:      'normal',
   outgroupsListFontFamily:'Roboto, sans-serif',       /* square outgroups footer font family */
-  outgroupsListFontSize:  '20px',                     /* outgroups list text */
+  outgroupsListFontSize:  '18px',                     /* outgroups list text */
   outgroupsListFontWeight:500,                        /* square outgroups footer font weight */
   verdictFontSize:        'clamp(16px, 1.9vw, 24px)', /* square PASS/FAIL badge text */
   verdictPaddingV:        6,                          /* square verdict vertical padding */
   verdictPaddingH:        8,                          /* square verdict horizontal padding */
   tableLayoutMode:        'auto',                     /* safer for narrowed square table width */
-  dataColWidth:           '46%',                      /* coeff ± SE (Z) column width in square view */
+  dataColWidth:           '46%',                      /* coeff ± SE (Z) col width when dynamicColumns=false */
   swatchColWidthPx:       40,                         /* square swatch col width */
   swatchCellWidthPx:      44,                         /* square swatch cell width */
   swatchPadLeftPx:        10,                         /* square swatch cell left pad */
@@ -604,11 +625,11 @@ const SQUARE_VIEW = {
   swatchHeight:           '32px',                     /* square swatch height */
   swatchRadius:           '3px',                      /* square swatch border radius */
   swatchBorder:           '2px solid #000',           /* square swatch border (syncs with donut edge) */
-  donutSizeScale:         0.82,                       /* square donut size multiplier (adds vertical breathing room) */
-  donutShiftYPx:          0,                          /* square donut vertical shift (+down / -up) */
+  donutSizeScale:         0.76,                       /* square donut size multiplier (adds vertical breathing room) */
+  donutShiftYPx:          -10,                        /* square donut vertical shift (+down / -up) */
   spacingScale:           1.0,                        /* global spacing multiplier for square view */
-  infoGapMinPx:           10,                         /* sources/outgroups block gap (min) */
-  infoGapMaxPx:           18,                         /* sources/outgroups block gap (max) */
+  infoGapMinPx:           6,                          /* sources/outgroups block gap (min) */
+  infoGapMaxPx:           12,                         /* sources/outgroups block gap (max) */
   tableHeaderPadYMinPx:   4,                          /* table header vertical padding (min) */
   tableHeaderPadYMaxPx:   8,                          /* table header vertical padding (max) */
   tableCellPadYMinPx:     4,                          /* table row vertical padding (min) */
@@ -623,10 +644,18 @@ const SQUARE_VIEW = {
   adaptiveSourceCountMax:       6,
   adaptiveNameLenStart:         18,
   adaptiveNameLenMax:           34,
-  adaptiveExtraDonutShrinkMax:  0.12,                 /* extra shrink on top of donutSizeScale */
-  adaptiveDonutShiftUpMaxPx:    14,                   /* move donut up to reduce top gap */
-  adaptivePanelTopShiftUpMaxPx: 18,                   /* move sources panel up to reduce bottom gap */
-  adaptiveInfoGapReduceMaxPx:   8,                    /* reduce sources/outgroups gap under congestion */
+  adaptiveDataLenStart:         24,                   /* start congestion from long coeff±SE(Z) strings */
+  adaptiveDataLenMax:           42,                   /* max congestion from coeff±SE(Z) string length */
+  adaptiveOutgroupsLenStart:    90,                   /* start congestion from long outgroups footer */
+  adaptiveOutgroupsLenMax:      220,                  /* max congestion from outgroups footer length */
+  adaptiveFontScaleMaxDrop:     0.24,                 /* max square table font shrink when congested */
+  adaptiveExtraDonutShrinkMax:  0.18,                 /* extra shrink on top of donutSizeScale */
+  adaptiveDonutShiftUpMaxPx:    48,                   /* move donut up to reduce top gap */
+  adaptivePanelTopShiftUpMaxPx: 56,                   /* move sources panel up to reduce bottom gap */
+  adaptiveInfoGapReduceMaxPx:   12,                   /* reduce sources/outgroups gap under congestion */
+  fitZOnlyMaxDropPx:            2,                    /* stage 1: max Z-score font drop (px) */
+  fitAllMaxDropPx:              2,                    /* stage 2: max all table text drop (px) */
+  fitFinalAllMaxDropPx:         2,                    /* stage 4: max all table text drop (px) */
 };
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -665,11 +694,11 @@ const TYPOGRAPHY = {
     lineHeight: '1.35', align: 'left',
   },
   sourcesCoeff: {
-    font: 'Roboto, sans-serif', fontSize: '17px', fontWeight: 500,
+    font: NUMERIC_TYPO.desktop.table, fontSize: '17px', fontWeight: 500,
     fontStyle: 'normal', color: '#111111', letterSpacing: '0', align: 'left',
   },
   sourcesZ: {
-    font: 'Roboto, sans-serif', fontSize: '15px', fontWeight: 700,
+    font: NUMERIC_TYPO.desktop.table, fontSize: '15px', fontWeight: 500,
     fontStyle: 'normal', letterSpacing: '0',
     zPrefix: 'Z:\u2009',
     zSepPx:  8,
@@ -835,6 +864,7 @@ let chartIsReversed = false;
 let lastSourceCount = 0;
 let currentParsedData = null;
 let lastRenderedMobile = null;
+let squareFitPressure = 0; /* 0..1 runtime pressure from measured square-table overflow */
 
 /* ═══════════════════════════════════════════════════════════════════════
    PERSISTENCE
@@ -898,6 +928,18 @@ function isMobileLayout() {
 
 function isSquareLayout() {
   return activeLayout === 'square';
+}
+
+function numericTableFontForLayout() {
+  if (isMobileLayout()) return NUMERIC_TYPO.mobile.table;
+  if (isSquareLayout()) return NUMERIC_TYPO.square.table;
+  return NUMERIC_TYPO.desktop.table;
+}
+
+function numericDonutPctFontForLayout() {
+  if (isMobileLayout()) return NUMERIC_TYPO.mobile.donutPct;
+  if (isSquareLayout()) return NUMERIC_TYPO.square.donutPct;
+  return NUMERIC_TYPO.desktop.donutPct;
 }
 
 function squareSpace(minPx, maxPx) {
@@ -967,11 +1009,61 @@ function getSquareCongestionFactor() {
   if (!srcs.length) return 0;
   const n = srcs.length;
   const maxLen = Math.max(...srcs.map(s => (s || '').length));
+  const ws = currentParsedData.weights || [];
+  const ss = currentParsedData.sesPct || [];
+  const zs = currentParsedData.zScores || [];
+  const outLen = ((currentParsedData.outgroups || '').length);
+  const dataLens = srcs.map((_, i) =>
+    `${(Number(ws[i]) || 0).toFixed(1)}% ± ${(Number(ss[i]) || 0).toFixed(2)}% (Z: ${(Number(zs[i]) || 0).toFixed(2)})`.length
+  );
+  const maxDataLen = dataLens.length ? Math.max(...dataLens) : 0;
   const nF = (n - SQUARE_VIEW.adaptiveSourceCountStart) /
              Math.max(1, (SQUARE_VIEW.adaptiveSourceCountMax - SQUARE_VIEW.adaptiveSourceCountStart));
   const lF = (maxLen - SQUARE_VIEW.adaptiveNameLenStart) /
              Math.max(1, (SQUARE_VIEW.adaptiveNameLenMax - SQUARE_VIEW.adaptiveNameLenStart));
-  return Math.max(0, Math.min(1, Math.max(nF, lF)));
+  const dF = (maxDataLen - (SQUARE_VIEW.adaptiveDataLenStart || 24)) /
+             Math.max(1, ((SQUARE_VIEW.adaptiveDataLenMax || 42) - (SQUARE_VIEW.adaptiveDataLenStart || 24)));
+  const oF = (outLen - (SQUARE_VIEW.adaptiveOutgroupsLenStart || 90)) /
+             Math.max(1, ((SQUARE_VIEW.adaptiveOutgroupsLenMax || 220) - (SQUARE_VIEW.adaptiveOutgroupsLenStart || 90)));
+  return Math.max(0, Math.min(1, Math.max(nF, lF, dF, oF)));
+}
+
+function resetViewDynamicSizing() {
+  squareFitPressure = 0;
+  const sourcesBox = document.getElementById('sourcesBox');
+  const outgroupsBox = document.getElementById('outgroupsBox');
+  const outgroupsFoot = document.getElementById('outgroupsFoot');
+  if (sourcesBox) {
+    sourcesBox.style.width = '';
+    sourcesBox.style.marginLeft = '';
+    sourcesBox.style.marginRight = '';
+    sourcesBox.style.flexShrink = '';
+    sourcesBox.style.minHeight = '';
+  }
+  if (outgroupsBox) {
+    outgroupsBox.style.width = '';
+    outgroupsBox.style.marginLeft = '';
+    outgroupsBox.style.marginRight = '';
+    outgroupsBox.style.flexShrink = '';
+    outgroupsBox.style.marginTop = '';
+    outgroupsBox.style.marginBottom = '';
+  }
+  if (outgroupsFoot) {
+    outgroupsFoot.style.width = '';
+    outgroupsFoot.style.marginLeft = '';
+    outgroupsFoot.style.marginRight = '';
+    outgroupsFoot.style.flexShrink = '';
+  }
+  const els = Array.from(document.querySelectorAll(
+    '#sourcesBox .pop-name, #sourcesBox .coeff-text, #sourcesBox .z-text, #sourcesHead th, #outgroupsFoot'
+  ));
+  els.forEach((el) => {
+    el.style.fontSize = '';
+    el.style.whiteSpace = '';
+    el.style.overflowWrap = '';
+    el.style.wordBreak = '';
+    if (el.dataset && el.dataset.baseFsSq) delete el.dataset.baseFsSq;
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -982,19 +1074,10 @@ function onRatioChange(val) {
   if (!opt) return;
   activeLayout     = val;
   CARD.aspectRatio = opt.dataset.ar;
+  resetViewDynamicSizing();
   savePref('qpviz_ratio', val);
-  const cardEl = document.getElementById('card');
-  if (cardEl.style.display === 'none') return;
-  cardEl.style.aspectRatio = CARD.aspectRatio;
-  const prof = LAYOUT_PROFILES[activeLayout];
-  cardEl.classList.toggle('stacked', !!prof.stacked);
-  applyResponsiveHeaderStyles();
-  renderInfoPanelsForCurrentLayout();
-  applyTableStylesForCurrentLayout();
-  applyDonutLabelSizeForLayout();
-  applyLayout();
-  const vb = document.getElementById('verdictBadge');
-  if (vb.textContent) requestAnimationFrame(() => applyVerdictPos(vb, vb.dataset.verdict || 'fail'));
+  /* Full re-render on every view change so widths/fonts don't carry over. */
+  parseAndDraw();
 }
 
 /* FIX: clamp the displayed value in the input field so out-of-range numbers
@@ -1118,7 +1201,7 @@ function applyLayout() {
   let cy = (p.donutCenterY  / 100) * cH;
   const mobile = isMobileLayout();
   const mobileAdaptive = getMobileAdaptiveProfile();
-  const squareCongestion = getSquareCongestionFactor();
+  const squareCongestion = isSquareLayout() ? squareFitPressure : getSquareCongestionFactor();
   if (isSquareLayout()) {
     const extraShrink = squareCongestion * SQUARE_VIEW.adaptiveExtraDonutShrinkMax;
     d *= Math.max(0.5, SQUARE_VIEW.donutSizeScale - extraShrink);
@@ -1127,10 +1210,6 @@ function applyLayout() {
     d *= Math.max(0.45, MOBILE_VIEW.donutSizeScale - mobileAdaptive.donutShrink);
     cy += MOBILE_VIEW.donutShiftYPx - mobileAdaptive.donutShiftUp;
   }
-  wrap.style.width  = d + 'px';
-  wrap.style.height = d + 'px';
-  wrap.style.left   = (cx - d / 2) + 'px';
-  wrap.style.top    = (cy - d / 2) + 'px';
 
   info.style.left   = ((p.panelLeft   / 100) * cW) + 'px';
   const infoTopBase = ((p.panelTop / 100) * cH);
@@ -1142,6 +1221,25 @@ function applyLayout() {
   info.style.top    = infoTop + 'px';
   info.style.right  = ((p.panelRight  / 100) * cW) + 'px';
   info.style.bottom = ((p.panelBottom / 100) * cH) + 'px';
+  info.style.overflow = isSquareLayout() ? 'visible' : 'hidden';
+
+  let donutTop = (cy - d / 2);
+  if (isSquareLayout() || mobile) {
+    const headerEl = document.getElementById('cardHeader');
+    const cardRect = cardEl.getBoundingClientRect();
+    const headerBottom = headerEl ? (headerEl.getBoundingClientRect().bottom - cardRect.top) : 0;
+    const zonePad = isSquareLayout() ? 8 : 10;
+    const zoneTop = Math.max(0, headerBottom + zonePad);
+    const zoneBottom = Math.max(zoneTop + d, infoTop - zonePad);
+    const zoneHeight = Math.max(0, zoneBottom - zoneTop);
+    if (zoneHeight >= d + 2) {
+      donutTop = zoneTop + ((zoneHeight - d) / 2);
+    }
+  }
+  wrap.style.width  = d + 'px';
+  wrap.style.height = d + 'px';
+  wrap.style.left   = (cx - d / 2) + 'px';
+  wrap.style.top    = donutTop + 'px';
 
   /* More vertical breathing room in mobile/stacked layouts */
   info.style.gap = isMobileLayout()
@@ -1162,6 +1260,14 @@ function applyLayout() {
     document.querySelectorAll('#sourcesBox .z-text').forEach(el => {
       el.style.fontSize = Math.max(9, Math.round(15 * scale)) + 'px';
     });
+  }
+
+  if (isSquareLayout()) {
+    applySquareDynamicSourcesWidth();
+  }
+
+  if (!isMobileLayout()) {
+    balanceDesktopSourceColumns({ dataWrap: isSquareLayout() ? !!SQUARE_VIEW.dynamicColumns : true });
   }
 }
 
@@ -1519,6 +1625,15 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
   const zT = TYPOGRAPHY.sourcesZ;
   const sc = TYPOGRAPHY.sourcesColon;
   const square = isSquareLayout();
+  const sqFontScale = 1; /* keep declared square font sizes unless overflow fallback is needed */
+  const sPx = (v, min) => {
+    const n = parseFloat(v);
+    if (isNaN(n)) return v;
+    return `${Math.max(min, Math.round(n * sqFontScale))}px`;
+  };
+  const squareDynamicCols = square && !!SQUARE_VIEW.dynamicColumns;
+  const dataWrap = square ? squareDynamicCols : true;
+  const sqPressure = square ? Math.max(0, Math.min(1, squareFitPressure)) : 0;
   const swatchCfg = square
     ? {
         width: SQUARE_VIEW.swatchWidth,
@@ -1527,11 +1642,15 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
         border: SQUARE_VIEW.swatchBorder,
       }
     : SWATCH;
-  const hdrFontSize = square ? SQUARE_VIEW.sourcesHeaderFontSize : sh.fontSize;
-  const tableLayout = square ? SQUARE_VIEW.tableLayoutMode : 'fixed';
+  const hdrFontSize = square ? sPx(SQUARE_VIEW.sourcesHeaderFontSize, 12) : sh.fontSize;
+  const tableLayout = square ? SQUARE_VIEW.tableLayoutMode : 'auto';
   const dataColWidth = square ? SQUARE_VIEW.dataColWidth : '220px';
-  const headerPadY = square ? squareSpace(SQUARE_VIEW.tableHeaderPadYMinPx, SQUARE_VIEW.tableHeaderPadYMaxPx) : 5;
-  const cellPadY   = square ? squareSpace(SQUARE_VIEW.tableCellPadYMinPx, SQUARE_VIEW.tableCellPadYMaxPx) : 5;
+  const headerPadY = square
+    ? Math.max(2, squareSpace(SQUARE_VIEW.tableHeaderPadYMinPx, SQUARE_VIEW.tableHeaderPadYMaxPx) - Math.round(3 * sqPressure))
+    : 5;
+  const cellPadY   = square
+    ? Math.max(2, squareSpace(SQUARE_VIEW.tableCellPadYMinPx, SQUARE_VIEW.tableCellPadYMaxPx) - Math.round(4 * sqPressure))
+    : 5;
   const cellPadX   = square ? squareSpace(SQUARE_VIEW.tableCellPadXMinPx, SQUARE_VIEW.tableCellPadXMaxPx) : 10;
   const swatchColWidth = square ? `${Math.max(24, Number(SQUARE_VIEW.swatchColWidthPx) || 40)}px` : '40px';
   const swatchCellWidth = square ? `${Math.max(24, Number(SQUARE_VIEW.swatchCellWidthPx) || 44)}px` : '44px';
@@ -1543,7 +1662,7 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
       <colgroup>
         <col class="col-sw-col" style="width:${swatchColWidth};">
         <col class="col-name-col">
-        <col class="col-data-col" style="width:${dataColWidth};">
+        <col class="col-data-col" style="${(square && !squareDynamicCols) ? `width:${dataColWidth};` : ''}">
       </colgroup>
       <thead id="sourcesHead"></thead>
       <tbody id="sourcesBody"></tbody>
@@ -1566,11 +1685,11 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
   sources.forEach((pop, i) => {
     const rs     = mergeRow(i);
     const nameFamily  = square ? SQUARE_VIEW.sourcesNameFontFamily  : rs.nameFont;
-    const nameSize  = square ? SQUARE_VIEW.sourcesNameFontSize  : rs.nameFontSize;
+    const nameSize  = square ? sPx(SQUARE_VIEW.sourcesNameFontSize, 12)  : rs.nameFontSize;
     const coeffFamily = square ? SQUARE_VIEW.sourcesCoeffFontFamily : rs.coeffFont;
-    const coeffSize = square ? SQUARE_VIEW.sourcesCoeffFontSize : rs.coeffFontSize;
+    const coeffSize = square ? sPx(SQUARE_VIEW.sourcesCoeffFontSize, 11) : rs.coeffFontSize;
     const zFamily    = square ? SQUARE_VIEW.sourcesZFontFamily     : rs.zFont;
-    const zSize     = square ? SQUARE_VIEW.sourcesZFontSize     : rs.zFontSize;
+    const zSize     = square ? sPx(SQUARE_VIEW.sourcesZFontSize, 10)     : rs.zFontSize;
     const nameWeight = square ? SQUARE_VIEW.sourcesNameFontWeight : rs.nameFontWeight;
     const coeffWeight = square ? SQUARE_VIEW.sourcesCoeffFontWeight : rs.coeffFontWeight;
     const zWeight = square ? SQUARE_VIEW.sourcesZFontWeight : rs.zFontWeight;
@@ -1584,10 +1703,11 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
     const isLast = i === sources.length - 1;
     const rowBdr = isLast ? '' : `border-bottom:${ts.rowBorderWidth} solid ${ts.rowBorderColor};`;
 
-    const zHtml   = `<span class="z-text" style="font-family:${zFamily};font-size:${zSize};font-weight:${zWeight};font-style:${zStyle};color:${zCol};white-space:nowrap;vertical-align:baseline;">(${zT.zPrefix}${z.toFixed(2)})</span>`;
+    const zToken  = `(Z:\u00A0${z.toFixed(2)})`;
+    const zHtml   = `<span class="z-text" style="font-family:${zFamily};font-size:${zSize};font-weight:${zWeight};font-style:${zStyle};color:${zCol};white-space:nowrap;display:inline-block;vertical-align:baseline;">${zToken}</span>`;
     const zSep    = `<span style="display:inline-block;width:${zT.zSepPx}px;"></span>`;
-    const colHtml = `<span style="font-family:${square ? coeffFamily : sc.colonFont};color:${sc.colonColor};white-space:pre;">${sc.colonText}</span>`;
-    const coHtml  = `<span class="coeff-text" style="font-family:${coeffFamily};font-size:${coeffSize};font-weight:${coeffWeight};font-style:${coeffStyle};color:${rs.coeffColor};white-space:nowrap;vertical-align:baseline;">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
+    const colHtml = `<span style="font-family:${square ? coeffFamily : sc.colonFont};color:${sc.colonColor};white-space:${dataWrap ? 'normal' : 'pre'};">${sc.colonText}</span>`;
+    const coHtml  = `<span class="coeff-text" style="font-family:${coeffFamily};font-size:${coeffSize};font-weight:${coeffWeight};font-style:${coeffStyle};color:${rs.coeffColor};white-space:${dataWrap ? 'normal' : 'nowrap'};vertical-align:baseline;">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
     const dataHtml = `${colHtml}${coHtml}${zSep}${zHtml}`;
 
     srcHTML += `<tr style="background:${rowBg};">
@@ -1597,10 +1717,294 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
       <td class="col-name" style="text-align:${rs.nameAlign};padding:${cellPadY}px 4px !important;vertical-align:middle;${rowBdr}background:${cellBg};">
         <span class="pop-name" style="font-family:${nameFamily};font-size:${nameSize};font-weight:${nameWeight};font-style:${nameStyle};color:${rs.nameColor};line-height:${rs.nameLineHeight};">${softBreak(pop)}</span>
       </td>
-      <td class="col-data" style="text-align:${rs.coeffAlign};white-space:nowrap;padding:${cellPadY}px ${cellPadX}px;vertical-align:middle;${rowBdr}background:${cellBg};">${dataHtml}</td>
+      <td class="col-data" style="text-align:${rs.coeffAlign};white-space:${dataWrap ? 'normal' : 'nowrap'};overflow-wrap:anywhere;word-break:break-word;padding:${cellPadY}px ${cellPadX}px;vertical-align:middle;${rowBdr}background:${cellBg};">${dataHtml}</td>
     </tr>`;
   });
   document.getElementById('sourcesBody').innerHTML = srcHTML;
+
+  balanceDesktopSourceColumns({ dataWrap });
+}
+
+function balanceDesktopSourceColumns({ dataWrap = true } = {}) {
+  if (isMobileLayout()) return;
+  const table = document.getElementById('sourcesTable');
+  if (!table) return;
+
+  const swCol = table.querySelector('col.col-sw-col');
+  const nameCol = table.querySelector('col.col-name-col');
+  const dataCol = table.querySelector('col.col-data-col');
+  if (!swCol || !nameCol || !dataCol) return;
+
+  const square = isSquareLayout();
+  let tW = table.clientWidth || table.getBoundingClientRect().width;
+  let swW = swCol.getBoundingClientRect().width || parseFloat(swCol.style.width) || 40;
+  let avail = Math.max(180, tW - swW);
+  let nameW = avail * 0.5; /* start symmetric 50/50 */
+  let dataW = avail - nameW;
+  let minName = Math.max(110, avail * 0.28);
+  let minData = Math.max(150, avail * 0.30);
+  const setCols = () => {
+    nameCol.style.width = `${Math.round(nameW)}px`;
+    dataCol.style.width = `${Math.round(dataW)}px`;
+  };
+  const recalcAvail = (preserveRatio = true) => {
+    const ratio = (nameW + dataW) > 0 ? (nameW / (nameW + dataW)) : 0.5;
+    tW = table.clientWidth || table.getBoundingClientRect().width;
+    swW = swCol.getBoundingClientRect().width || parseFloat(swCol.style.width) || 40;
+    avail = Math.max(180, tW - swW);
+    minName = Math.max(110, avail * 0.28);
+    minData = Math.max(150, avail * 0.30);
+    if (preserveRatio) {
+      nameW = Math.max(minName, Math.min(avail - minData, avail * ratio));
+    } else {
+      nameW = Math.max(minName, Math.min(avail - minData, avail * 0.5));
+    }
+    dataW = avail - nameW;
+  };
+  recalcAvail(false);
+  setCols();
+
+  const nameCells = Array.from(table.querySelectorAll('td.col-name'));
+  const dataCells = Array.from(table.querySelectorAll('td.col-data'));
+  if (!nameCells.length || !dataCells.length) return;
+
+  const prevNameWs = nameCells.map(el => el.style.whiteSpace);
+  const prevDataWs = dataCells.map(el => el.style.whiteSpace);
+  const setWrapState = (wrap, forceNoWrap = false) => {
+    nameCells.forEach((el, i) => {
+      const baseNoWrap = forceNoWrap ? 'nowrap' : (square ? 'nowrap' : (prevNameWs[i] || 'normal'));
+      el.style.whiteSpace = wrap ? 'normal' : baseNoWrap;
+    });
+    dataCells.forEach((el, i) => {
+      const baseNoWrap = forceNoWrap ? 'nowrap' : (square ? 'nowrap' : (prevDataWs[i] || 'nowrap'));
+      el.style.whiteSpace = wrap ? 'normal' : baseNoWrap;
+      if (wrap) {
+        el.style.overflowWrap = 'anywhere';
+        el.style.wordBreak = 'break-word';
+      } else {
+        el.style.overflowWrap = '';
+        el.style.wordBreak = '';
+      }
+    });
+  };
+
+  const maxOverflow = (cells) =>
+    cells.reduce((m, el) => Math.max(m, (el.scrollWidth || 0) - (el.clientWidth || 0)), 0);
+  const rowOverflow = () =>
+    nameCells.map((nEl, i) => ({
+      n: Math.max(0, (nEl.scrollWidth || 0) - (nEl.clientWidth || 0)),
+      d: Math.max(0, ((dataCells[i] && dataCells[i].scrollWidth) || 0) - ((dataCells[i] && dataCells[i].clientWidth) || 0)),
+    }));
+  const getVerticalOverflow = () => {
+    if (!square) return 0;
+    const infoEl = document.getElementById('infoCol');
+    const sourcesBox = document.getElementById('sourcesBox');
+    const sourcesTable = document.getElementById('sourcesTable');
+    const outgroupsBox = document.getElementById('outgroupsBox');
+    const outgroupsTable = document.getElementById('outgroupsTable');
+    const outgroupsFoot = document.getElementById('outgroupsFoot');
+    let over = 0;
+    if (infoEl) over = Math.max(over, (infoEl.scrollHeight || 0) - (infoEl.clientHeight || 0));
+    if (sourcesBox && sourcesTable) {
+      over = Math.max(over, (sourcesTable.scrollHeight || 0) - (sourcesBox.clientHeight || 0));
+    }
+    if (outgroupsBox && outgroupsTable && outgroupsBox.style.display !== 'none') {
+      over = Math.max(over, (outgroupsTable.scrollHeight || 0) - (outgroupsBox.clientHeight || 0));
+    }
+    if (outgroupsFoot && outgroupsFoot.style.display !== 'none') {
+      over = Math.max(over, (outgroupsFoot.scrollHeight || 0) - (outgroupsFoot.clientHeight || 0));
+    }
+    return Math.max(0, over);
+  };
+  let nameOver = 0;
+  let dataOver = 0;
+  const recomputeOverflow = () => {
+    nameOver = maxOverflow(nameCells);
+    dataOver = maxOverflow(dataCells);
+  };
+
+  const rebalanceTowardOverflow = () => {
+    const movable = Math.max(0, avail - (minName + minData));
+    if (movable <= 0) return;
+    if (dataOver > nameOver) {
+      const shift = Math.min(movable, Math.max(0, (dataOver - nameOver) * 1.2));
+      nameW = Math.max(minName, nameW - shift);
+      dataW = avail - nameW;
+    } else if (nameOver > dataOver) {
+      const shift = Math.min(movable, Math.max(0, (nameOver - dataOver) * 1.2));
+      dataW = Math.max(minData, dataW - shift);
+      nameW = avail - dataW;
+    }
+    setCols();
+    recomputeOverflow();
+  };
+
+  const tryGrowSquareWidth = (maxPctCap = null) => {
+    if (!square || !SQUARE_VIEW.tableWidthDynamic) return false;
+    const sourcesBox = document.getElementById('sourcesBox');
+    if (!sourcesBox) return false;
+    const minPct = Math.max(20, Math.min(100, Number(SQUARE_VIEW.tableWidthPercent) || 70));
+    const maxBase = Math.max(minPct, Math.min(100, Number(SQUARE_VIEW.tableWidthMaxPercent) || 100));
+    const maxPct = maxPctCap == null
+      ? maxBase
+      : Math.max(minPct, Math.min(maxBase, Number(maxPctCap) || maxBase));
+    const buffer = Math.max(1, Number(SQUARE_VIEW.tableWidthBufferRatio) || 1.2);
+    const pct = Math.max(minPct, Math.min(maxPct, parseFloat(sourcesBox.style.width) || minPct));
+    const boxW = Math.max(1, sourcesBox.clientWidth || 1);
+    const vOver = getVerticalOverflow();
+    const needPx = Math.max(nameOver, dataOver, vOver * 0.9);
+    if (needPx <= 1) return false;
+    const needScale = Math.max(1, ((boxW + needPx) / boxW) * buffer);
+    const nextPct = Math.max(minPct, Math.min(maxPct, pct * needScale));
+    if (nextPct <= pct + 0.2) return false;
+    sourcesBox.style.width = `${nextPct}%`;
+    return true;
+  };
+
+  const preWrapMaxPct = Math.max(
+    Number(SQUARE_VIEW.tableWidthPercent) || 70,
+    Math.min(
+      Number(SQUARE_VIEW.tableWidthMaxPercent) || 100,
+      Number(SQUARE_VIEW.preWrapWidthMaxPercent) || 80
+    )
+  );
+
+  const noWrapPass = () => {
+    setWrapState(false, true);
+    recomputeOverflow();
+    if (nameOver > 1 || dataOver > 1) rebalanceTowardOverflow();
+    if (tryGrowSquareWidth(preWrapMaxPct)) {
+      recalcAvail(true);
+      setCols();
+      recomputeOverflow();
+      if (nameOver > 1 || dataOver > 1) rebalanceTowardOverflow();
+    }
+  };
+
+  if (square) applySquareTableFontDropPx(0, 'all');
+  noWrapPass();
+  let verticalOver = getVerticalOverflow();
+
+  if (square && (nameOver > 1 || dataOver > 1 || verticalOver > 1)) {
+    let solved = false;
+    const zMaxDrop = Math.max(0, Math.min(2, Number(SQUARE_VIEW.fitZOnlyMaxDropPx) || 2));
+    for (let drop = 1; drop <= zMaxDrop; drop++) {
+      applySquareTableFontDropPx(drop, 'z');
+      noWrapPass();
+      verticalOver = getVerticalOverflow();
+      if (nameOver <= 1 && dataOver <= 1 && verticalOver <= 1) { solved = true; break; }
+    }
+    if (!solved) applySquareTableFontDropPx(0, 'z');
+
+    if (!solved && (nameOver > 1 || dataOver > 1 || verticalOver > 1)) {
+      const allMaxDrop = Math.max(0, Math.min(2, Number(SQUARE_VIEW.fitAllMaxDropPx) || 2));
+      for (let drop = 1; drop <= allMaxDrop; drop++) {
+        applySquareTableFontDropPx(drop, 'all');
+        noWrapPass();
+        verticalOver = getVerticalOverflow();
+        if (nameOver <= 1 && dataOver <= 1 && verticalOver <= 1) { solved = true; break; }
+      }
+    }
+
+    if (!solved) {
+      /* As requested: reset to declared size before newline stage */
+      applySquareTableFontDropPx(0, 'all');
+      noWrapPass();
+      verticalOver = getVerticalOverflow();
+    }
+  }
+
+  /* Newline only if both columns overflow in at least one row */
+  const bothOverflowSameRow = rowOverflow().some(r => r.n > 1 && r.d > 1);
+  const allowWrap = dataWrap && bothOverflowSameRow;
+  setWrapState(allowWrap, false);
+  recalcAvail(true);
+  setCols();
+  recomputeOverflow();
+  verticalOver = getVerticalOverflow();
+
+  if (square) {
+    let pressure = 0;
+    const stillOverflowing = () => (nameOver > 1 || dataOver > 1 || verticalOver > 1);
+
+    if (stillOverflowing()) {
+      const finalMaxDrop = Math.max(0, Math.min(2, Number(SQUARE_VIEW.fitFinalAllMaxDropPx) || 2));
+      let resolved = false;
+      for (let drop = 1; drop <= finalMaxDrop; drop++) {
+        applySquareTableFontDropPx(drop, 'all');
+        setWrapState(allowWrap, !allowWrap);
+        recalcAvail(true);
+        setCols();
+        recomputeOverflow();
+        if (!allowWrap && (nameOver > 1 || dataOver > 1)) rebalanceTowardOverflow();
+        if (tryGrowSquareWidth()) {
+          recalcAvail(true);
+          setCols();
+          recomputeOverflow();
+          if (!allowWrap && (nameOver > 1 || dataOver > 1)) rebalanceTowardOverflow();
+        }
+        setWrapState(allowWrap, !allowWrap);
+        recomputeOverflow();
+        verticalOver = getVerticalOverflow();
+        if (!stillOverflowing()) {
+          resolved = true;
+          pressure = 0.45 + (drop * 0.2);
+          break;
+        }
+      }
+
+      if (!resolved && stillOverflowing()) {
+        const infoEl = document.getElementById('infoCol');
+        const infoH = Math.max(1, infoEl ? infoEl.clientHeight : 1);
+        const hRatio = Math.max(nameOver, dataOver) / Math.max(1, avail * 0.18);
+        const vRatio = verticalOver / Math.max(1, infoH * 0.18);
+        pressure = Math.max(0.55, Math.min(1, Math.max(hRatio, vRatio)));
+      }
+    }
+
+    squareFitPressure = Math.max(0, Math.min(1, pressure));
+  }
+}
+
+function applySquareTableFontDropPx(dropPx, mode = 'all') {
+  if (!isSquareLayout()) return;
+  const clampedDrop = Math.max(0, Math.min(2, Number(dropPx) || 0));
+  const selectors = mode === 'z'
+    ? ['#sourcesBox .z-text']
+    : ['#sourcesBox .pop-name', '#sourcesBox .coeff-text', '#sourcesBox .z-text', '#sourcesHead th'];
+  const els = selectors.flatMap((sel) => Array.from(document.querySelectorAll(sel)));
+  if (!els.length) return;
+  els.forEach(el => {
+    const cs = window.getComputedStyle(el);
+    if (!el.dataset.baseFsSq) {
+      const b = parseFloat(cs.fontSize);
+      if (!isNaN(b) && b > 0) el.dataset.baseFsSq = String(b);
+    }
+    const base = parseFloat(el.dataset.baseFsSq || '');
+    if (isNaN(base) || base <= 0) return;
+    el.style.fontSize = `${Math.max(10, Math.round(base - clampedDrop))}px`;
+  });
+}
+
+function applySquareTableFontScale(scale) {
+  if (!isSquareLayout()) return;
+  const clamped = Math.max(0.8, Math.min(1, Number(scale) || 1));
+  const refs = Array.from(document.querySelectorAll('#sourcesBox .pop-name, #sourcesBox .coeff-text, #sourcesBox .z-text'));
+  if (!refs.length) return;
+  refs.forEach(el => {
+    const cs = window.getComputedStyle(el);
+    if (!el.dataset.baseFsSq) {
+      const b = parseFloat(cs.fontSize);
+      if (!isNaN(b) && b > 0) el.dataset.baseFsSq = String(b);
+    }
+  });
+  const baseVals = refs
+    .map(el => parseFloat(el.dataset.baseFsSq || ''))
+    .filter(v => !isNaN(v) && v > 0);
+  if (!baseVals.length) return;
+  const avgBase = baseVals.reduce((a, b) => a + b, 0) / baseVals.length;
+  const drop = Math.max(0, Math.min(2, Math.round(avgBase * (1 - clamped))));
+  applySquareTableFontDropPx(drop, 'all');
 }
 
 /*
@@ -1635,6 +2039,7 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
   const MOB_COEFF_STYLE  = MOBILE_VIEW.sourcesCoeffFontStyle;
   const MOB_Z_WEIGHT = MOBILE_VIEW.sourcesZFontWeight;
   const MOB_Z_STYLE  = MOBILE_VIEW.sourcesZFontStyle;
+  const MOB_NUMERIC_FONT = numericTableFontForLayout() || TYPOGRAPHY.sourcesCoeff.font;
   const MOB_HDR_SIZE   = px(MOBILE_VIEW.sourcesHeaderFontSize, mob.fontScale, 11);
   const rowScale = Math.max(0.55, mob.rowPadScale);
   const MOB_ROW_PAD_TOP = Math.max(4, Math.round((MOBILE_VIEW.sourcesRowPadTopPx || 10) * rowScale));
@@ -1740,7 +2145,7 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
           line-height:1.4;
         ">
           <span class="coeff-text" style="
-            font-family:${rs.coeffFont};
+            font-family:${MOB_NUMERIC_FONT};
             font-size:${MOB_COEFF_SIZE};
             font-weight:${MOB_COEFF_WEIGHT};
             font-style:${MOB_COEFF_STYLE};
@@ -1748,7 +2153,7 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
             white-space:nowrap;
           ">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>
           <span class="z-text" style="
-            font-family:${rs.zFont};
+            font-family:${MOB_NUMERIC_FONT};
             font-size:${MOB_Z_SIZE};
             font-weight:${MOB_Z_WEIGHT};
             font-style:${MOB_Z_STYLE};
@@ -1762,6 +2167,49 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
 
   html += `</div>`;
   document.getElementById('sourcesBox').innerHTML = html;
+}
+
+function applySquareDynamicSourcesWidth() {
+  if (!isSquareLayout()) return;
+  const sourcesBox = document.getElementById('sourcesBox');
+  const sourcesTable = document.getElementById('sourcesTable');
+  if (!sourcesBox || !sourcesTable) return;
+
+  const minPct = Math.max(20, Math.min(100, Number(SQUARE_VIEW.tableWidthPercent) || 70));
+  const maxPct = Math.max(minPct, Math.min(100, Number(SQUARE_VIEW.tableWidthMaxPercent) || 100));
+
+  if (!SQUARE_VIEW.tableWidthDynamic) {
+    sourcesBox.style.width = `${minPct}%`;
+    return;
+  }
+
+  const buffer = Math.max(1, Number(SQUARE_VIEW.tableWidthBufferRatio) || 1.2);
+  let pct = Math.max(minPct, Math.min(maxPct, parseFloat(sourcesBox.style.width) || minPct));
+  const maxCellOverflow = () => {
+    const cells = [
+      ...sourcesTable.querySelectorAll('td.col-name'),
+      ...sourcesTable.querySelectorAll('td.col-data'),
+    ];
+    if (!cells.length) return 0;
+    return cells.reduce((m, el) => Math.max(m, (el.scrollWidth || 0) - (el.clientWidth || 0)), 0);
+  };
+
+  /* Grow only when actual overflow is measured; cap at maxPct. */
+  for (let i = 0; i < 3; i++) {
+    sourcesBox.style.width = `${pct}%`;
+    const clientW = sourcesTable.clientWidth || 0;
+    if (!clientW) break;
+    const tableOverflow = Math.max(0, (sourcesTable.scrollWidth || 0) - clientW);
+    const cellOverflow = Math.max(0, maxCellOverflow());
+    const overflowPx = Math.max(tableOverflow, cellOverflow);
+    if (overflowPx <= 1) break;
+    const neededPct = pct * (((clientW + overflowPx) / clientW) * buffer);
+    const nextPct = Math.max(minPct, Math.min(maxPct, neededPct));
+    if (Math.abs(nextPct - pct) < 0.25) { pct = nextPct; break; }
+    pct = nextPct;
+  }
+
+  sourcesBox.style.width = `${pct}%`;
 }
 
 function renderInfoPanelsForCurrentLayout() {
@@ -1782,6 +2230,13 @@ function renderInfoPanelsForCurrentLayout() {
   const ogh   = TYPOGRAPHY.outgroupsHeader;
   const ts    = TABLE_STYLE;
   const square = isSquareLayout();
+  const sqPressure = square ? Math.max(0, Math.min(1, squareFitPressure)) : 0;
+  const sqFontScale = 1;
+  const sqPx = (v, min) => {
+    const n = parseFloat(v);
+    if (isNaN(n)) return v;
+    return `${Math.max(min, Math.round(n * sqFontScale))}px`;
+  };
   const mob = getMobileAdaptiveProfile();
   const mPx = (v, scale, min) => {
     const n = parseFloat(v);
@@ -1794,16 +2249,22 @@ function renderInfoPanelsForCurrentLayout() {
   const mobileBottomInset = Math.max(0, Number(MOBILE_VIEW.outgroupsBottomInsetPx) || 0);
 
   if (square) {
-    const w = `${SQUARE_VIEW.tableWidthPercent}%`;
+    const w = `${Math.max(20, Math.min(100, Number(SQUARE_VIEW.tableWidthPercent) || 70))}%`;
     sourcesBox.style.width = w;
     sourcesBox.style.marginLeft = 'auto';
     sourcesBox.style.marginRight = 'auto';
+    sourcesBox.style.flexShrink = '0';
+    sourcesBox.style.minHeight = 'fit-content';
     outgroupsBox.style.width = '';
     outgroupsBox.style.marginLeft = '';
     outgroupsBox.style.marginRight = '';
+    outgroupsBox.style.flexShrink = '0';
     outgroupsFoot.style.width = '';
     outgroupsFoot.style.marginLeft = '';
     outgroupsFoot.style.marginRight = '';
+    outgroupsFoot.style.flexShrink = '0';
+    applySquareDynamicSourcesWidth();
+    balanceDesktopSourceColumns({ dataWrap: !!SQUARE_VIEW.dynamicColumns });
   } else if (mobile) {
     const mobileW = Math.max(30, Math.min(100, Number(MOBILE_VIEW.tableWidthPercent) || 100));
     const w = `${mobileW}%`;
@@ -1816,6 +2277,10 @@ function renderInfoPanelsForCurrentLayout() {
     outgroupsFoot.style.width = '';
     outgroupsFoot.style.marginLeft = '';
     outgroupsFoot.style.marginRight = '';
+    sourcesBox.style.flexShrink = '';
+    sourcesBox.style.minHeight = '';
+    outgroupsBox.style.flexShrink = '';
+    outgroupsFoot.style.flexShrink = '';
   } else {
     sourcesBox.style.width = '';
     sourcesBox.style.marginLeft = '';
@@ -1826,6 +2291,10 @@ function renderInfoPanelsForCurrentLayout() {
     outgroupsFoot.style.width = '';
     outgroupsFoot.style.marginLeft = '';
     outgroupsFoot.style.marginRight = '';
+    sourcesBox.style.flexShrink = '';
+    sourcesBox.style.minHeight = '';
+    outgroupsBox.style.flexShrink = '';
+    outgroupsFoot.style.flexShrink = '';
   }
 
   if (mobile && !square && MOBILE_VIEW.outgroupsAutoFillGap) {
@@ -1850,14 +2319,14 @@ function renderInfoPanelsForCurrentLayout() {
       outgroupsFoot.style.background = ts.headerBg;
       outgroupsFoot.style.border = `${ts.boxBorderWidth} solid ${ts.boxBorderColor}`;
       outgroupsFoot.style.borderRadius = tableRadiusFor('outgroups');
-      outgroupsFoot.style.padding = `${squareSpace(SQUARE_VIEW.tableCellPadYMinPx, SQUARE_VIEW.tableCellPadYMaxPx)}px ${squareSpace(SQUARE_VIEW.tableCellPadXMinPx, SQUARE_VIEW.tableCellPadXMaxPx)}px`;
+      outgroupsFoot.style.padding = `${Math.max(2, squareSpace(SQUARE_VIEW.tableCellPadYMinPx, SQUARE_VIEW.tableCellPadYMaxPx) - Math.round(4 * sqPressure))}px ${squareSpace(SQUARE_VIEW.tableCellPadXMinPx, SQUARE_VIEW.tableCellPadXMaxPx)}px`;
       outgroupsFoot.style.fontFamily = SQUARE_VIEW.outgroupsListFontFamily || TYPOGRAPHY.outgroupsCell.font;
       outgroupsFoot.style.fontWeight = SQUARE_VIEW.outgroupsListFontWeight || TYPOGRAPHY.outgroupsCell.fontWeight;
       outgroupsFoot.style.fontStyle = TYPOGRAPHY.outgroupsCell.fontStyle;
       outgroupsFoot.style.color = TYPOGRAPHY.outgroupsCell.color;
       outgroupsFoot.style.lineHeight = TYPOGRAPHY.outgroupsCell.lineHeight || '1.6';
       outgroupsFoot.style.textAlign = TYPOGRAPHY.outgroupsCell.align || 'left';
-      outgroupsFoot.style.fontSize = SQUARE_VIEW.outgroupsListFontSize;
+      outgroupsFoot.style.fontSize = sqPx(SQUARE_VIEW.outgroupsListFontSize, 11);
       outgroupsFoot.style.whiteSpace = 'normal';
       outgroupsFoot.style.overflow = 'visible';
       outgroupsFoot.style.textOverflow = '';
@@ -1898,7 +2367,7 @@ function renderInfoPanelsForCurrentLayout() {
     ogH.style.padding       = mobile
       ? '12px 20px'
       : square
-        ? `${squareSpace(SQUARE_VIEW.tableHeaderPadYMinPx, SQUARE_VIEW.tableHeaderPadYMaxPx)}px ${squareSpace(SQUARE_VIEW.tableCellPadXMinPx, SQUARE_VIEW.tableCellPadXMaxPx)}px`
+        ? `${Math.max(2, squareSpace(SQUARE_VIEW.tableHeaderPadYMinPx, SQUARE_VIEW.tableHeaderPadYMaxPx) - Math.round(3 * sqPressure))}px ${squareSpace(SQUARE_VIEW.tableCellPadXMinPx, SQUARE_VIEW.tableCellPadXMaxPx)}px`
         : '5px 10px';
     if (mobile) {
       ogH.style.fontSize      = mPx(MOBILE_VIEW.outgroupsHeaderFontSize, mob.fontScale, 11);
@@ -1910,7 +2379,7 @@ function renderInfoPanelsForCurrentLayout() {
     ogTd.style.padding    = mobile
       ? `${Math.max(8, Math.round(14 * mob.rowPadScale))}px ${Math.max(12, Math.round(20 * mob.rowPadScale))}px`
       : square
-        ? `${squareSpace(SQUARE_VIEW.tableCellPadYMinPx, SQUARE_VIEW.tableCellPadYMaxPx)}px ${squareSpace(SQUARE_VIEW.tableCellPadXMinPx, SQUARE_VIEW.tableCellPadXMaxPx)}px`
+        ? `${Math.max(2, squareSpace(SQUARE_VIEW.tableCellPadYMinPx, SQUARE_VIEW.tableCellPadYMaxPx) - Math.round(4 * sqPressure))}px ${squareSpace(SQUARE_VIEW.tableCellPadXMinPx, SQUARE_VIEW.tableCellPadXMaxPx)}px`
         : '5px 10px';
     ogTd.style.background = ts.cellBg;
     if (mobile) {
@@ -1970,6 +2439,7 @@ function applyDonutLabelSizeForLayout() {
       ? SQUARE_VIEW.donutPctLabelSizePx
       : CFG.donutPctLabelSizePx;
   chartObj.options.plugins.datalabels.font.size = size;
+  chartObj.options.plugins.datalabels.font.family = numericDonutPctFontForLayout();
   const tt = getDonutTooltipFontSizesForLayout();
   chartObj.options.plugins.tooltip.bodyFont = { size: tt.body };
   chartObj.options.plugins.tooltip.titleFont = { size: tt.title };
@@ -2005,6 +2475,7 @@ function parseAndDraw() {
     const { target, sources, weights, sesPct, zScores, pValue, chisq, outgroups } = parsed;
     /* FIX: store target in currentParsedData so downloadImage() can use it for the filename */
     currentParsedData = { target, sources, weights, sesPct, zScores, outgroups };
+    resetViewDynamicSizing();
     if (sources.length > 6) console.warn('More than 6 sources — excess rendered in grey (#888888).');
 
     /* Card background + ratio */
@@ -2121,7 +2592,7 @@ function parseAndDraw() {
             display: (ctx) => showLabels && ctx.dataset.data[ctx.dataIndex] > 5,
             color:   (ctx) => labelColorFor(lastColors[ctx.dataIndex] || '#888888'),
             font: {
-              family: 'Roboto, sans-serif',
+              family: numericDonutPctFontForLayout(),
               weight: 700,
               size: mobile
                 ? Math.max(9, Math.round(MOBILE_VIEW.donutPctLabelSizePx * mob.fontScale))
@@ -2154,6 +2625,10 @@ function parseAndDraw() {
     requestAnimationFrame(() => {
       applyLayout();
       applyVerdictPos(vb, verdictType);
+      requestAnimationFrame(() => {
+        applyLayout();
+        applyVerdictPos(vb, verdictType);
+      });
     });
 
     document.getElementById('downloadBtn').style.display = 'inline-block';
