@@ -166,7 +166,19 @@
     .outgroups-td { white-space: normal; word-break: break-word; overflow-wrap: break-word; }
 
     /* Watermark */
-    .watermark { position: absolute; bottom: 8px; right: 12px; z-index: 5; }
+    .watermark {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      z-index: 5;
+      pointer-events: none;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+    }
+    .watermark .sig-ch { display: block; line-height: 1; }
 
     /* Stacked layout (portrait / square) */
     #card.stacked .col-data-col { width: auto; }
@@ -418,6 +430,22 @@ const TABLE_STYLE = {
 };
 
 /* ═══════════════════════════════════════════════════════════════════════
+   TABLE ROUNDNESS CONTROLS
+   Separate control for sources/outgroups in:
+   - global (non-mobile, non-square)
+   - mobile
+   - square
+═══════════════════════════════════════════════════════════════════════ */
+const TABLE_RADIUS = {
+  globalSources:  '2px',
+  globalOutgroups:'2px',
+  mobileSources:  '8px',
+  mobileOutgroups:'8px',
+  squareSources:  '8px',
+  squareOutgroups:'8px',
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
    DONUT CONFIG
 
    donutClockwise: true  → segments rendered in original data order (CW)
@@ -440,6 +468,8 @@ const CFG = {
   zGoodMin:            3,
   zMidMin:             2,
   donutPctLabelSizePx:  18,   /* desktop/tablet slice % label size (px) */
+  tooltipBodyFontSizePx: 12,   /* base donut tooltip body font size (px) */
+  tooltipTitleFontSizePx: 12,  /* base donut tooltip title font size (px) */
 };
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -447,30 +477,34 @@ const CFG = {
    Applied only when isMobileLayout() is true.
 ═══════════════════════════════════════════════════════════════════════ */
 const MOBILE_VIEW = {
+  tableWidthPercent:      95,                        /* mobile/portrait sources+outgroups block width (%) */
   targetHeadingFontSize:  'clamp(55px, 8.5vw, 80px)', /* Target: ... heading */
   statFontSize:           'clamp(30px, 5vw, 50px)',   /* χ² / p stats line */
   sourcesHeaderFontSize:  '28px',                     /* SOURCES header */
   outgroupsHeaderFontSize:'28px',                     /* OUTGROUPS header */
   outgroupsListFontSize:  '28px',                     /* outgroups list text */
-  sourcesNameFontSize:    '35px',                     /* source population name */
+  sourcesNameFontSize:    '38px',                     /* source population name */
   sourcesCoeffFontSize:   '35px',                     /* coeff ± SE line */
   sourcesZFontSize:       '32px',                     /* (Z: ...) */
-  sourcesNameFontWeight:  500,
+  sourcesNameFontWeight:  600,
   sourcesNameFontStyle:   'normal',
-  sourcesCoeffFontWeight: 500,
+  sourcesCoeffFontWeight: 450,
   sourcesCoeffFontStyle:  'normal',
-  sourcesZFontWeight:     700,
+  sourcesZFontWeight:     430,
   sourcesZFontStyle:      'normal',
   equalSourceRowHeights:  true,                       /* mobile: keep source rows equal height */
   sourcesRowPadTopPx:     10,                         /* mobile row padding top */
   sourcesRowPadBottomPx:  10,                         /* mobile row padding bottom */
-  rowFitSourceCountStart: 4,                          /* start uniform row shrink from this many sources */
-  rowFitSourceCountMax:   6,                          /* full row shrink at this many sources */
-  rowFitScaleMaxDrop:     0.24,                       /* max uniform row-height compression */
   sourcesOutgroupsGap:    '28px',                     /* vertical gap between sources + outgroups tables */
+  outgroupsBottomInsetPx: 0,                          /* mobile: minimum gap from card bottom edge */
+  outgroupsAutoFillGap:   true,                       /* mobile: auto-fill space between sources/outgroups */
   sourcesTableBottomPadPx: 12,                        /* extra bottom breathing room in sources table */
   sourcesLastRowExtraBottomPadPx: 8,                  /* extra bottom pad only for last source row */
   sourcesSwatchInsetPx:   2,                          /* vertical inset so swatch never touches row edges */
+  sourcesSwatchBarWidthPx: 18,                        /* mobile elongated swatch width */
+  sourcesSwatchBarRadiusPx: 3,                        /* mobile elongated swatch corner radius */
+  sourcesSwatchBarBorderWidthPx: 1.5,                 /* mobile elongated swatch border width */
+  sourcesSwatchBarBorderColor: 'rgba(0,0,0,0.2)',     /* mobile elongated swatch border color */
   verdictFontSize:        'clamp(24px, 3.8vw, 34px)', /* PASS/FAIL badge text */
   verdictPaddingV:        5,                         /* PASS/FAIL badge vertical padding (px) */
   verdictPaddingH:        5,                         /* PASS/FAIL badge horizontal padding (px) */
@@ -479,6 +513,7 @@ const MOBILE_VIEW = {
   verdictOffsetY:         8,                          /* from donut top-right, px (+down / -up) */
   verdictRightInsetPx:    25,                         /* right inset when verdictAnchorX = 'card-right' */
   donutPctLabelSizePx:    30,                         /* mobile slice % label size (px) */
+  tooltipSizeScale:       3,                          /* mobile donut tooltip scale (3x base) */
   donutSizeScale:         0.94,                       /* base mobile donut scale */
   donutShiftYPx:          0,                          /* base mobile donut vertical shift */
   /* Adaptive anti-congestion rule for mobile:
@@ -499,6 +534,30 @@ const MOBILE_VIEW = {
   adaptiveGapReduceMaxPx:       10,                   /* reduce sources/outgroups gap */
   adaptiveFontScaleMaxDrop:     0.28,                 /* max font reduction in stage 3 */
   adaptiveRowPadScaleMaxDrop:   0.40,                 /* max row/header padding reduction in stage 3 */
+  /* Source-count pressure (applies uniformly to all rows, prevents last-row clipping) */
+  adaptiveCountStart:           3,
+  adaptiveCountMax:             6,
+  adaptiveCountPanelTopShiftMaxPx: 12,
+  adaptiveCountGapReduceMaxPx:  6,
+  adaptiveCountDonutShrinkMax:  0.06,
+  adaptiveCountFontDropMax:     0.12,
+  adaptiveCountRowPadDropMax:   0.16,
+};
+
+const SIGNATURE = {
+  enabled:       true,
+  text:          'ad99',
+  fontFamily:    'Roboto, sans-serif',
+  fontSize:      '12px',   /* slightly more prominent default */
+  fontWeight:    800,
+  fontStyle:     'normal',
+  letterSpacing: '0',
+  lineHeight:    '1',
+  color:         '',      /* empty = use themed watermark color */
+  opacity:       0.88,
+  rightInsetPx:  9,       /* horizontal position from right edge */
+  bottomInsetPx: 0,       /* vertical position from bottom edge */
+  zIndex:        6,
 };
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -513,21 +572,34 @@ const SQUARE_VIEW = {
   donutPctLabelSizePx:    20,                         /* donut % label size in square view */
   sourcesHeaderFontSize:  '18px',                     /* SOURCES header */
   outgroupsHeaderFontSize:'18px',                     /* OUTGROUPS header */
-  sourcesNameFontSize:    '22px',                     /* source name */
-  sourcesCoeffFontSize:   '22px',                     /* coeff ± SE */
-  sourcesZFontSize:       '20px',                     /* Z text */
-  sourcesNameFontWeight:  500,
+  sourcesNameFontFamily:  'Roboto, sans-serif',       /* source name font family */
+  sourcesNameFontSize:    '25px',                     /* source name */
+  sourcesNameFontWeight:  600,
   sourcesNameFontStyle:   'normal',
+  sourcesCoeffFontFamily: 'Roboto, sans-serif',       /* coeff ± SE font family */
+  sourcesCoeffFontSize:   '25px',                     /* coeff ± SE */
   sourcesCoeffFontWeight: 500,
   sourcesCoeffFontStyle:  'normal',
+  sourcesZFontFamily:     'Roboto, sans-serif',       /* Z text font family */
+  sourcesZFontSize:       '23px',                     /* Z text */
   sourcesZFontWeight:     700,
   sourcesZFontStyle:      'normal',
+  outgroupsListFontFamily:'Roboto, sans-serif',       /* square outgroups footer font family */
   outgroupsListFontSize:  '20px',                     /* outgroups list text */
+  outgroupsListFontWeight:500,                        /* square outgroups footer font weight */
   verdictFontSize:        'clamp(16px, 1.9vw, 24px)', /* square PASS/FAIL badge text */
   verdictPaddingV:        6,                          /* square verdict vertical padding */
   verdictPaddingH:        8,                          /* square verdict horizontal padding */
   tableLayoutMode:        'auto',                     /* safer for narrowed square table width */
   dataColWidth:           '46%',                      /* coeff ± SE (Z) column width in square view */
+  swatchColWidthPx:       40,                         /* square swatch col width */
+  swatchCellWidthPx:      44,                         /* square swatch cell width */
+  swatchPadLeftPx:        10,                         /* square swatch cell left pad */
+  swatchPadRightPx:       5,                          /* square swatch cell right pad */
+  swatchWidth:            '29px',                     /* square swatch width */
+  swatchHeight:           '32px',                     /* square swatch height */
+  swatchRadius:           '3px',                      /* square swatch border radius */
+  swatchBorder:           '1.0px solid #000',         /* square swatch border 1.8px solid #000 */
   donutSizeScale:         0.82,                       /* square donut size multiplier (adds vertical breathing room) */
   donutShiftYPx:          0,                          /* square donut vertical shift (+down / -up) */
   spacingScale:           1.0,                        /* global spacing multiplier for square view */
@@ -611,8 +683,8 @@ const TYPOGRAPHY = {
     fontStyle: 'normal', color: '#6b7280', letterSpacing: '0', lineHeight: '1.6', align: 'left',
   },
   watermark: {
-    font: 'Roboto, sans-serif', fontSize: '9px', fontWeight: 500,
-    fontStyle: 'normal', color: '#c0cad6', letterSpacing: '0.05em',
+    font: 'Roboto, sans-serif', fontSize: '7px', fontWeight: 500,
+    fontStyle: 'normal', color: '#c0cad6', letterSpacing: '0',
   },
 };
 
@@ -822,19 +894,41 @@ function getMobileCongestionFactor() {
 
 function getMobileAdaptiveProfile() {
   const f = getMobileCongestionFactor();
+  const srcs = currentParsedData && currentParsedData.sources ? currentParsedData.sources : [];
+  const countT = Math.max(
+    0,
+    Math.min(1, (srcs.length - MOBILE_VIEW.adaptiveCountStart) /
+      Math.max(1, (MOBILE_VIEW.adaptiveCountMax - MOBILE_VIEW.adaptiveCountStart)))
+  );
   const s1End = Math.max(0.05, Math.min(0.9, MOBILE_VIEW.adaptiveStage1SpaceEnd));
   const s2End = Math.max(s1End + 0.05, Math.min(0.98, MOBILE_VIEW.adaptiveStage2DonutEnd));
   const stage1 = Math.min(1, f / s1End);
   const stage2 = f <= s1End ? 0 : Math.min(1, (f - s1End) / (s2End - s1End));
   const stage3 = f <= s2End ? 0 : Math.min(1, (f - s2End) / (1 - s2End));
+  const panelTopShiftUp =
+    (stage1 * MOBILE_VIEW.adaptivePanelTopShiftUpMaxPx) +
+    (countT * MOBILE_VIEW.adaptiveCountPanelTopShiftMaxPx);
+  const gapReduce =
+    (stage1 * MOBILE_VIEW.adaptiveGapReduceMaxPx) +
+    (countT * MOBILE_VIEW.adaptiveCountGapReduceMaxPx);
+  const donutShrink =
+    (stage2 * MOBILE_VIEW.adaptiveExtraDonutShrinkMax) +
+    (countT * MOBILE_VIEW.adaptiveCountDonutShrinkMax);
+  const fontScale =
+    (1 - (stage3 * MOBILE_VIEW.adaptiveFontScaleMaxDrop)) *
+    (1 - (countT * MOBILE_VIEW.adaptiveCountFontDropMax));
+  const rowPadScale =
+    (1 - (stage3 * MOBILE_VIEW.adaptiveRowPadScaleMaxDrop)) *
+    (1 - (countT * MOBILE_VIEW.adaptiveCountRowPadDropMax));
   return {
     congestion: f,
+    countPressure: countT,
     donutShiftUp: stage1 * MOBILE_VIEW.adaptiveDonutShiftUpMaxPx,
-    panelTopShiftUp: stage1 * MOBILE_VIEW.adaptivePanelTopShiftUpMaxPx,
-    gapReduce: stage1 * MOBILE_VIEW.adaptiveGapReduceMaxPx,
-    donutShrink: stage2 * MOBILE_VIEW.adaptiveExtraDonutShrinkMax,
-    fontScale: 1 - (stage3 * MOBILE_VIEW.adaptiveFontScaleMaxDrop),
-    rowPadScale: 1 - (stage3 * MOBILE_VIEW.adaptiveRowPadScaleMaxDrop),
+    panelTopShiftUp,
+    gapReduce,
+    donutShrink,
+    fontScale,
+    rowPadScale,
   };
 }
 
@@ -867,6 +961,7 @@ function onRatioChange(val) {
   cardEl.classList.toggle('stacked', !!prof.stacked);
   applyResponsiveHeaderStyles();
   renderInfoPanelsForCurrentLayout();
+  applyTableStylesForCurrentLayout();
   applyDonutLabelSizeForLayout();
   applyLayout();
   const vb = document.getElementById('verdictBadge');
@@ -1049,11 +1144,72 @@ function applyT(el, t) {
   if (t.align)         el.style.textAlign     = t.align;
 }
 
-function applyTableStyle(boxEl) {
+function applySignature() {
+  const wmEl = document.getElementById('watermark');
+  if (!wmEl) return;
+
+  if (!SIGNATURE.enabled || !SIGNATURE.text) {
+    wmEl.style.display = 'none';
+    wmEl.innerHTML = '';
+    return;
+  }
+
+  wmEl.style.display = 'block';
+  wmEl.innerHTML = '';
+  Array.from(String(SIGNATURE.text)).forEach((ch) => {
+    const span = document.createElement('span');
+    span.className = 'sig-ch';
+    span.textContent = ch === ' ' ? '\u00A0' : ch;
+    wmEl.appendChild(span);
+  });
+
+  /* Start from themed watermark defaults, then apply signature overrides */
+  applyT(wmEl, TYPOGRAPHY.watermark);
+
+  if (SIGNATURE.fontFamily)    wmEl.style.fontFamily = SIGNATURE.fontFamily;
+  if (SIGNATURE.fontSize)      wmEl.style.fontSize = SIGNATURE.fontSize;
+  if (SIGNATURE.fontWeight)    wmEl.style.fontWeight = SIGNATURE.fontWeight;
+  if (SIGNATURE.fontStyle)     wmEl.style.fontStyle = SIGNATURE.fontStyle;
+  if (SIGNATURE.letterSpacing !== undefined) wmEl.style.letterSpacing = SIGNATURE.letterSpacing;
+  if (SIGNATURE.lineHeight)    wmEl.style.lineHeight = SIGNATURE.lineHeight;
+  if (SIGNATURE.color)         wmEl.style.color = SIGNATURE.color;
+
+  const op = Number(SIGNATURE.opacity);
+  wmEl.style.opacity = String(isNaN(op) ? 1 : Math.max(0, Math.min(1, op)));
+  wmEl.style.right = `${Number(SIGNATURE.rightInsetPx) || 0}px`;
+  wmEl.style.bottom = `${Number(SIGNATURE.bottomInsetPx) || 0}px`;
+  wmEl.style.zIndex = String(Number(SIGNATURE.zIndex) || 6);
+}
+
+function radiusCss(v, fallback = '2px') {
+  if (v === undefined || v === null) return fallback;
+  const s = String(v).trim();
+  if (!s) return fallback;
+  if (/^\d+(\.\d+)?$/.test(s)) return `${Math.max(0, parseFloat(s))}px`;
+  return s;
+}
+
+function tableRadiusFor(role) {
+  const fallback = TABLE_STYLE.boxBorderRadius || '2px';
+  if (isSquareLayout()) {
+    return radiusCss(role === 'outgroups' ? TABLE_RADIUS.squareOutgroups : TABLE_RADIUS.squareSources, fallback);
+  }
+  if (isMobileLayout()) {
+    return radiusCss(role === 'outgroups' ? TABLE_RADIUS.mobileOutgroups : TABLE_RADIUS.mobileSources, fallback);
+  }
+  return radiusCss(role === 'outgroups' ? TABLE_RADIUS.globalOutgroups : TABLE_RADIUS.globalSources, fallback);
+}
+
+function applyTableStyle(boxEl, role = 'sources') {
   if (!boxEl) return;
   const ts = TABLE_STYLE;
   boxEl.style.border       = `${ts.boxBorderWidth} solid ${ts.boxBorderColor}`;
-  boxEl.style.borderRadius = ts.boxBorderRadius;
+  boxEl.style.borderRadius = tableRadiusFor(role);
+}
+
+function applyTableStylesForCurrentLayout() {
+  applyTableStyle(document.getElementById('sourcesBox'), 'sources');
+  applyTableStyle(document.getElementById('outgroupsBox'), 'outgroups');
 }
 
 /*
@@ -1312,17 +1468,29 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
   const zT = TYPOGRAPHY.sourcesZ;
   const sc = TYPOGRAPHY.sourcesColon;
   const square = isSquareLayout();
+  const swatchCfg = square
+    ? {
+        width: SQUARE_VIEW.swatchWidth,
+        height: SQUARE_VIEW.swatchHeight,
+        radius: SQUARE_VIEW.swatchRadius,
+        border: SQUARE_VIEW.swatchBorder,
+      }
+    : SWATCH;
   const hdrFontSize = square ? SQUARE_VIEW.sourcesHeaderFontSize : sh.fontSize;
   const tableLayout = square ? SQUARE_VIEW.tableLayoutMode : 'fixed';
   const dataColWidth = square ? SQUARE_VIEW.dataColWidth : '220px';
   const headerPadY = square ? squareSpace(SQUARE_VIEW.tableHeaderPadYMinPx, SQUARE_VIEW.tableHeaderPadYMaxPx) : 5;
   const cellPadY   = square ? squareSpace(SQUARE_VIEW.tableCellPadYMinPx, SQUARE_VIEW.tableCellPadYMaxPx) : 5;
   const cellPadX   = square ? squareSpace(SQUARE_VIEW.tableCellPadXMinPx, SQUARE_VIEW.tableCellPadXMaxPx) : 10;
+  const swatchColWidth = square ? `${Math.max(24, Number(SQUARE_VIEW.swatchColWidthPx) || 40)}px` : '40px';
+  const swatchCellWidth = square ? `${Math.max(24, Number(SQUARE_VIEW.swatchCellWidthPx) || 44)}px` : '44px';
+  const swatchPadLeft = square ? `${Math.max(0, Number(SQUARE_VIEW.swatchPadLeftPx) || 0)}px` : `${cellPadX}px`;
+  const swatchPadRight = square ? `${Math.max(0, Number(SQUARE_VIEW.swatchPadRightPx) || 0)}px` : '0px';
 
   document.getElementById('sourcesBox').innerHTML = `
     <table class="data-table" id="sourcesTable" style="border-collapse:collapse;width:100%;table-layout:${tableLayout};">
       <colgroup>
-        <col class="col-sw-col" style="width:40px;">
+        <col class="col-sw-col" style="width:${swatchColWidth};">
         <col class="col-name-col">
         <col class="col-data-col" style="width:${dataColWidth};">
       </colgroup>
@@ -1346,8 +1514,11 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
   let srcHTML = '';
   sources.forEach((pop, i) => {
     const rs     = mergeRow(i);
+    const nameFamily  = square ? SQUARE_VIEW.sourcesNameFontFamily  : rs.nameFont;
     const nameSize  = square ? SQUARE_VIEW.sourcesNameFontSize  : rs.nameFontSize;
+    const coeffFamily = square ? SQUARE_VIEW.sourcesCoeffFontFamily : rs.coeffFont;
     const coeffSize = square ? SQUARE_VIEW.sourcesCoeffFontSize : rs.coeffFontSize;
+    const zFamily    = square ? SQUARE_VIEW.sourcesZFontFamily     : rs.zFont;
     const zSize     = square ? SQUARE_VIEW.sourcesZFontSize     : rs.zFontSize;
     const nameWeight = square ? SQUARE_VIEW.sourcesNameFontWeight : rs.nameFontWeight;
     const coeffWeight = square ? SQUARE_VIEW.sourcesCoeffFontWeight : rs.coeffFontWeight;
@@ -1362,18 +1533,18 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
     const isLast = i === sources.length - 1;
     const rowBdr = isLast ? '' : `border-bottom:${ts.rowBorderWidth} solid ${ts.rowBorderColor};`;
 
-    const zHtml   = `<span class="z-text" style="font-family:${rs.zFont};font-size:${zSize};font-weight:${zWeight};font-style:${zStyle};color:${zCol};white-space:nowrap;vertical-align:baseline;">(${zT.zPrefix}${z.toFixed(2)})</span>`;
+    const zHtml   = `<span class="z-text" style="font-family:${zFamily};font-size:${zSize};font-weight:${zWeight};font-style:${zStyle};color:${zCol};white-space:nowrap;vertical-align:baseline;">(${zT.zPrefix}${z.toFixed(2)})</span>`;
     const zSep    = `<span style="display:inline-block;width:${zT.zSepPx}px;"></span>`;
-    const colHtml = `<span style="font-family:${sc.colonFont};color:${sc.colonColor};white-space:pre;">${sc.colonText}</span>`;
-    const coHtml  = `<span class="coeff-text" style="font-family:${rs.coeffFont};font-size:${coeffSize};font-weight:${coeffWeight};font-style:${coeffStyle};color:${rs.coeffColor};white-space:nowrap;vertical-align:baseline;">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
+    const colHtml = `<span style="font-family:${square ? coeffFamily : sc.colonFont};color:${sc.colonColor};white-space:pre;">${sc.colonText}</span>`;
+    const coHtml  = `<span class="coeff-text" style="font-family:${coeffFamily};font-size:${coeffSize};font-weight:${coeffWeight};font-style:${coeffStyle};color:${rs.coeffColor};white-space:nowrap;vertical-align:baseline;">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
     const dataHtml = `${colHtml}${coHtml}${zSep}${zHtml}`;
 
     srcHTML += `<tr style="background:${rowBg};">
-      <td class="col-sw" style="width:44px;padding:${cellPadY}px 0 ${cellPadY}px ${cellPadX}px !important;vertical-align:middle;${rowBdr}background:${cellBg};">
-        <span class="swatch" data-seg-swatch="${i}" style="background:${colors[i]};width:${SWATCH.width};height:${SWATCH.height};border-radius:${SWATCH.radius};border:${SWATCH.border};display:inline-block;"></span>
+      <td class="col-sw" style="width:${swatchCellWidth};padding:${cellPadY}px ${swatchPadRight} ${cellPadY}px ${swatchPadLeft} !important;vertical-align:middle;${rowBdr}background:${cellBg};">
+        <span class="swatch" data-seg-swatch="${i}" style="background:${colors[i]};width:${swatchCfg.width};height:${swatchCfg.height};border-radius:${swatchCfg.radius};border:${swatchCfg.border};display:inline-block;"></span>
       </td>
       <td class="col-name" style="text-align:${rs.nameAlign};padding:${cellPadY}px 4px !important;vertical-align:middle;${rowBdr}background:${cellBg};">
-        <span class="pop-name" style="font-family:${rs.nameFont};font-size:${nameSize};font-weight:${nameWeight};font-style:${nameStyle};color:${rs.nameColor};line-height:${rs.nameLineHeight};">${softBreak(pop)}</span>
+        <span class="pop-name" style="font-family:${nameFamily};font-size:${nameSize};font-weight:${nameWeight};font-style:${nameStyle};color:${rs.nameColor};line-height:${rs.nameLineHeight};">${softBreak(pop)}</span>
       </td>
       <td class="col-data" style="text-align:${rs.coeffAlign};white-space:nowrap;padding:${cellPadY}px ${cellPadX}px;vertical-align:middle;${rowBdr}background:${cellBg};">${dataHtml}</td>
     </tr>`;
@@ -1414,11 +1585,7 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
   const MOB_Z_WEIGHT = MOBILE_VIEW.sourcesZFontWeight;
   const MOB_Z_STYLE  = MOBILE_VIEW.sourcesZFontStyle;
   const MOB_HDR_SIZE   = px(MOBILE_VIEW.sourcesHeaderFontSize, mob.fontScale, 11);
-  const rowFitN0 = MOBILE_VIEW.rowFitSourceCountStart || 4;
-  const rowFitN1 = Math.max(rowFitN0 + 1, MOBILE_VIEW.rowFitSourceCountMax || 6);
-  const rowFitT  = Math.max(0, Math.min(1, (sources.length - rowFitN0) / (rowFitN1 - rowFitN0)));
-  const rowFitScale = 1 - (rowFitT * (MOBILE_VIEW.rowFitScaleMaxDrop || 0.24));
-  const rowScale = Math.max(0.55, mob.rowPadScale * rowFitScale);
+  const rowScale = Math.max(0.55, mob.rowPadScale);
   const MOB_ROW_PAD_TOP = Math.max(4, Math.round((MOBILE_VIEW.sourcesRowPadTopPx || 10) * rowScale));
   const MOB_ROW_PAD_BOTTOM = Math.max(4, Math.round((MOBILE_VIEW.sourcesRowPadBottomPx || 10) * rowScale));
   const MOB_CARD_PAD_X = Math.max(12, Math.round(20 * mob.rowPadScale));
@@ -1427,7 +1594,12 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
   const MOB_BOTTOM_PAD = MOBILE_VIEW.equalSourceRowHeights
     ? 0
     : Math.max(8, Math.round((MOBILE_VIEW.sourcesTableBottomPadPx || 12) * mob.rowPadScale));
-  const MOB_BAR_W      = '13px';
+  const MOB_BAR_W      = `${Math.max(4, Number(MOBILE_VIEW.sourcesSwatchBarWidthPx) || 13)}px`;
+  const MOB_BAR_RADIUS = `${Math.max(0, Number(MOBILE_VIEW.sourcesSwatchBarRadiusPx) || 0)}px`;
+  const MOB_BAR_BORDER_W = Math.max(0, Number(MOBILE_VIEW.sourcesSwatchBarBorderWidthPx) || 0);
+  const MOB_BAR_BORDER = MOB_BAR_BORDER_W > 0
+    ? `${MOB_BAR_BORDER_W}px solid ${MOBILE_VIEW.sourcesSwatchBarBorderColor || 'rgba(0,0,0,0.2)'}`
+    : 'none';
   const ROW_GAP_Y = Math.max(4, Math.round(8 * rowScale));
   const ROW_GAP_X = Math.max(8, Math.round(16 * rowScale));
   const META_GAP_X = Math.max(8, Math.round(12 * rowScale));
@@ -1483,8 +1655,8 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
         margin-bottom:${MOB_SWATCH_INSET}px;
         min-height:${MOBILE_VIEW.equalSourceRowHeights ? Math.max(42, MOB_EQUAL_ROW_MIN_H - (2 * MOB_SWATCH_INSET)) : Math.max(42, Math.round(60 * mob.rowPadScale))}px;
         background:${colors[i]};
-        border-radius:3px;
-        border:1.5px solid rgba(0,0,0,0.2);
+        border-radius:${MOB_BAR_RADIUS};
+        border:${MOB_BAR_BORDER};
       "></div>
 
       <!-- Source name + data stacked vertically -->
@@ -1568,6 +1740,7 @@ function renderInfoPanelsForCurrentLayout() {
   const sourcesBox = document.getElementById('sourcesBox');
   const outgroupsBox = document.getElementById('outgroupsBox');
   const outgroupsFoot = document.getElementById('outgroupsFoot');
+  const mobileBottomInset = Math.max(0, Number(MOBILE_VIEW.outgroupsBottomInsetPx) || 0);
 
   if (square) {
     const w = `${SQUARE_VIEW.tableWidthPercent}%`;
@@ -1577,6 +1750,18 @@ function renderInfoPanelsForCurrentLayout() {
     outgroupsBox.style.width = '';
     outgroupsBox.style.marginLeft = '';
     outgroupsBox.style.marginRight = '';
+    outgroupsFoot.style.width = '';
+    outgroupsFoot.style.marginLeft = '';
+    outgroupsFoot.style.marginRight = '';
+  } else if (mobile) {
+    const mobileW = Math.max(30, Math.min(100, Number(MOBILE_VIEW.tableWidthPercent) || 100));
+    const w = `${mobileW}%`;
+    sourcesBox.style.width = w;
+    sourcesBox.style.marginLeft = 'auto';
+    sourcesBox.style.marginRight = 'auto';
+    outgroupsBox.style.width = w;
+    outgroupsBox.style.marginLeft = 'auto';
+    outgroupsBox.style.marginRight = 'auto';
     outgroupsFoot.style.width = '';
     outgroupsFoot.style.marginLeft = '';
     outgroupsFoot.style.marginRight = '';
@@ -1592,6 +1777,16 @@ function renderInfoPanelsForCurrentLayout() {
     outgroupsFoot.style.marginRight = '';
   }
 
+  if (mobile && !square && MOBILE_VIEW.outgroupsAutoFillGap) {
+    outgroupsBox.style.marginTop = 'auto';
+    outgroupsBox.style.marginBottom = `${mobileBottomInset}px`;
+    outgroupsBox.style.flexShrink = '0';
+  } else {
+    outgroupsBox.style.marginTop = '';
+    outgroupsBox.style.marginBottom = '';
+    outgroupsBox.style.flexShrink = '';
+  }
+
   if (square) {
     ogBox.style.display = 'none';
     if (outgroups) {
@@ -1601,11 +1796,12 @@ function renderInfoPanelsForCurrentLayout() {
       outgroupsFoot.style.right = '';
       outgroupsFoot.style.bottom = '';
       outgroupsFoot.style.marginTop = 'auto';
-      outgroupsFoot.style.background = 'transparent';
-      outgroupsFoot.style.border = 'none';
-      outgroupsFoot.style.padding = `${squareSpace(SQUARE_VIEW.tableCellPadYMinPx, SQUARE_VIEW.tableCellPadYMaxPx)}px 0 0 0`;
-      outgroupsFoot.style.fontFamily = TYPOGRAPHY.outgroupsCell.font;
-      outgroupsFoot.style.fontWeight = TYPOGRAPHY.outgroupsCell.fontWeight;
+      outgroupsFoot.style.background = ts.headerBg;
+      outgroupsFoot.style.border = `${ts.boxBorderWidth} solid ${ts.boxBorderColor}`;
+      outgroupsFoot.style.borderRadius = tableRadiusFor('outgroups');
+      outgroupsFoot.style.padding = `${squareSpace(SQUARE_VIEW.tableCellPadYMinPx, SQUARE_VIEW.tableCellPadYMaxPx)}px ${squareSpace(SQUARE_VIEW.tableCellPadXMinPx, SQUARE_VIEW.tableCellPadXMaxPx)}px`;
+      outgroupsFoot.style.fontFamily = SQUARE_VIEW.outgroupsListFontFamily || TYPOGRAPHY.outgroupsCell.font;
+      outgroupsFoot.style.fontWeight = SQUARE_VIEW.outgroupsListFontWeight || TYPOGRAPHY.outgroupsCell.fontWeight;
       outgroupsFoot.style.fontStyle = TYPOGRAPHY.outgroupsCell.fontStyle;
       outgroupsFoot.style.color = TYPOGRAPHY.outgroupsCell.color;
       outgroupsFoot.style.lineHeight = TYPOGRAPHY.outgroupsCell.lineHeight || '1.6';
@@ -1631,6 +1827,10 @@ function renderInfoPanelsForCurrentLayout() {
     outgroupsFoot.style.right = '';
     outgroupsFoot.style.bottom = '';
     outgroupsFoot.style.marginTop = '';
+    outgroupsFoot.style.background = '';
+    outgroupsFoot.style.border = '';
+    outgroupsFoot.style.borderRadius = '';
+    outgroupsFoot.style.padding = '';
     outgroupsFoot.style.whiteSpace = '';
     outgroupsFoot.style.overflow = '';
     outgroupsFoot.style.textOverflow = '';
@@ -1719,7 +1919,18 @@ function applyDonutLabelSizeForLayout() {
       ? SQUARE_VIEW.donutPctLabelSizePx
       : CFG.donutPctLabelSizePx;
   chartObj.options.plugins.datalabels.font.size = size;
+  const tt = getDonutTooltipFontSizesForLayout();
+  chartObj.options.plugins.tooltip.bodyFont = { size: tt.body };
+  chartObj.options.plugins.tooltip.titleFont = { size: tt.title };
   chartObj.update();
+}
+
+function getDonutTooltipFontSizesForLayout() {
+  const mobileScale = isMobileLayout() ? Math.max(1, MOBILE_VIEW.tooltipSizeScale || 1) : 1;
+  return {
+    body: Math.max(10, Math.round(CFG.tooltipBodyFontSizePx * mobileScale)),
+    title: Math.max(10, Math.round(CFG.tooltipTitleFontSizePx * mobileScale)),
+  };
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -1796,8 +2007,7 @@ function parseAndDraw() {
     applyLayout();
 
     /* Table borders */
-    applyTableStyle(document.getElementById('sourcesBox'));
-    applyTableStyle(document.getElementById('outgroupsBox'));
+    applyTableStylesForCurrentLayout();
 
     /* ─── Colours ─── */
     const pidx = parseInt(document.getElementById('paletteSelect').value);
@@ -1814,6 +2024,7 @@ function parseAndDraw() {
     const chartWeights = CFG.donutClockwise ? [...weights]        : [...weights].reverse();
     const chartLabels  = CFG.donutClockwise ? [...sources]        : [...sources].reverse();
     lastColors = [...chartColors];
+    const ttFonts = getDonutTooltipFontSizesForLayout();
 
     /* ─── Donut chart ─── */
     const ctx = document.getElementById('donutChart').getContext('2d');
@@ -1843,7 +2054,11 @@ function parseAndDraw() {
         layout: { padding: CFG.donutHoverOff },
         plugins: {
           legend: { display: false },
-          tooltip: { callbacks: { label: c => ` ${c.label}: ${c.parsed.toFixed(1)}%` } },
+          tooltip: {
+            titleFont: { size: ttFonts.title },
+            bodyFont: { size: ttFonts.body },
+            callbacks: { label: c => ` ${c.label}: ${c.parsed.toFixed(1)}%` },
+          },
           datalabels: {
             display: (ctx) => showLabels && ctx.dataset.data[ctx.dataIndex] > 5,
             color:   (ctx) => labelColorFor(lastColors[ctx.dataIndex] || '#888888'),
@@ -1868,9 +2083,8 @@ function parseAndDraw() {
     /* Sources + outgroups re-render based on current view mode */
     renderInfoPanelsForCurrentLayout();
 
-    /* Watermark */
-    document.getElementById('watermark').textContent = '';
-    applyT(document.getElementById('watermark'), TYPOGRAPHY.watermark);
+    /* Signature */
+    applySignature();
 
     /* Second layout pass after paint */
     requestAnimationFrame(() => {
@@ -1934,6 +2148,7 @@ window.addEventListener('resize', () => {
     if (lastRenderedMobile !== null && mobileNow !== lastRenderedMobile) {
       renderInfoPanelsForCurrentLayout();
     }
+    applyTableStylesForCurrentLayout();
     applyResponsiveHeaderStyles();
     applyDonutLabelSizeForLayout();
     applyLayout();
