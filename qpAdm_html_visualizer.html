@@ -506,8 +506,8 @@ const MOBILE_VIEW = {
   sourcesSwatchInsetPx:   2,                          /* vertical inset so swatch never touches row edges */
   sourcesSwatchBarWidthPx: 18,                        /* mobile elongated swatch width */
   sourcesSwatchBarRadiusPx: 3,                        /* mobile elongated swatch corner radius */
-  sourcesSwatchBarBorderWidthPx: 1.5,                 /* mobile elongated swatch border width */
-  sourcesSwatchBarBorderColor: 'rgba(0,0,0,0.2)',     /* mobile elongated swatch border color */
+  sourcesSwatchBarBorderWidthPx: 2,                   /* mobile elongated swatch border width */
+  sourcesSwatchBarBorderColor: '#000000',             /* mobile elongated swatch border color */
   verdictFontSize:        'clamp(24px, 3.8vw, 34px)', /* PASS/FAIL badge text */
   verdictPaddingV:        5,                         /* PASS/FAIL badge vertical padding (px) */
   verdictPaddingH:        5,                         /* PASS/FAIL badge horizontal padding (px) */
@@ -603,7 +603,7 @@ const SQUARE_VIEW = {
   swatchWidth:            '29px',                     /* square swatch width */
   swatchHeight:           '32px',                     /* square swatch height */
   swatchRadius:           '3px',                      /* square swatch border radius */
-  swatchBorder:           '1.0px solid #000',         /* square swatch border 1.8px solid #000 */
+  swatchBorder:           '2px solid #000',           /* square swatch border (syncs with donut edge) */
   donutSizeScale:         0.82,                       /* square donut size multiplier (adds vertical breathing room) */
   donutShiftYPx:          0,                          /* square donut vertical shift (+down / -up) */
   spacingScale:           1.0,                        /* global spacing multiplier for square view */
@@ -632,7 +632,7 @@ const SQUARE_VIEW = {
 /* ═══════════════════════════════════════════════════════════════════════
    SWATCH
 ═══════════════════════════════════════════════════════════════════════ */
-const SWATCH = { width: '29px', height: '23px', radius: '0px', border: '1.8px solid #000' };
+const SWATCH = { width: '29px', height: '23px', radius: '3px', border: '1.0px solid #000' };
 
 /* ═══════════════════════════════════════════════════════════════════════
    TYPOGRAPHY (colours mutated by applyTheme)
@@ -748,11 +748,27 @@ const THEMES = {
 
 let currentTheme = 'light';
 
+function borderStyleFrom(borderStr) {
+  const b = (borderStr || '').trim();
+  const m = b.match(/^\d*\.?\d+(?:px|em|rem|%)?\s+([a-zA-Z]+)/);
+  return m ? m[1] : 'solid';
+}
+
+function syncSwatchBordersToDonutEdges() {
+  const donutW = Math.max(0, Number(CFG.donutBorderW) || 2);
+  const donutC = CFG.donutBorderC || '#000000';
+  SWATCH.border = `${donutW}px ${borderStyleFrom(SWATCH.border)} ${donutC}`;
+  SQUARE_VIEW.swatchBorder = `${donutW}px ${borderStyleFrom(SQUARE_VIEW.swatchBorder)} ${donutC}`;
+  MOBILE_VIEW.sourcesSwatchBarBorderWidthPx = donutW;
+  MOBILE_VIEW.sourcesSwatchBarBorderColor = donutC;
+}
+
 function applyTheme(mode) {
   currentTheme = mode;
   const t = THEMES[mode];
   CARD.bgColor     = t.cardBg;
   CFG.donutBorderC = t.donutBorderC;
+  syncSwatchBordersToDonutEdges();
   Object.assign(TYPOGRAPHY.target,          t.target);
   Object.assign(TYPOGRAPHY.stat,            t.stat);
   Object.assign(TYPOGRAPHY.sourcesName,     t.sourcesName);
@@ -865,6 +881,7 @@ function loadPrefs() {
     btn.textContent = '↺ CCW';
     btn.classList.add('active');
   }
+  syncSwatchBordersToDonutEdges();
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
