@@ -383,6 +383,13 @@ let activeLayout = 'landscape-wide';
 ═══════════════════════════════════════════════════════════════════════ */
 const CARD = { bgColor: '#ffffff', aspectRatio: '16 / 10.5' };
 
+const TARGET_FIT = {
+  desktopMaxWidthRatio: 0.80, /* default/standard/wide/square */
+  mobileMaxWidthRatio:  0.90, /* mobile/portrait */
+  minFontPxDesktop:     16,
+  minFontPxMobile:      18,
+};
+
 /* ═══════════════════════════════════════════════════════════════════════
    VERDICT BADGE
 ═══════════════════════════════════════════════════════════════════════ */
@@ -2430,6 +2437,70 @@ function applyResponsiveHeaderStyles() {
   }
 }
 
+function fitTargetHeading(targetName = '') {
+  const cardEl = document.getElementById('card');
+  const tEl = document.getElementById('cardTarget');
+  if (!cardEl || !tEl) return;
+  if (cardEl.style.display === 'none') return;
+
+  const raw = String(targetName || (currentParsedData && currentParsedData.target) || '')
+    .replace(/^Target:\s*/i, '')
+    .trim();
+  if (!raw) return;
+
+  const mobile = isMobileLayout();
+  const maxRatio = mobile ? TARGET_FIT.mobileMaxWidthRatio : TARGET_FIT.desktopMaxWidthRatio;
+  const maxWidth = Math.max(1, Math.floor((cardEl.clientWidth || cardEl.getBoundingClientRect().width || 1) * maxRatio));
+  const minPx = mobile ? TARGET_FIT.minFontPxMobile : TARGET_FIT.minFontPxDesktop;
+
+  /* Base style first (this clears any previous fit override). */
+  tEl.textContent = `Target: ${raw}`;
+  tEl.style.whiteSpace = 'nowrap';
+
+  const cs = window.getComputedStyle(tEl);
+  const basePx = parseFloat(cs.fontSize) || (mobile ? 36 : 30);
+
+  const measure = (txt, fontPx) => {
+    const probe = document.createElement('span');
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.pointerEvents = 'none';
+    probe.style.whiteSpace = 'nowrap';
+    probe.style.fontFamily = cs.fontFamily;
+    probe.style.fontWeight = cs.fontWeight;
+    probe.style.fontStyle = cs.fontStyle;
+    probe.style.letterSpacing = cs.letterSpacing;
+    probe.style.lineHeight = cs.lineHeight;
+    probe.style.fontSize = `${fontPx}px`;
+    probe.textContent = txt;
+    cardEl.appendChild(probe);
+    const w = probe.getBoundingClientRect().width;
+    probe.remove();
+    return w;
+  };
+
+  const withPrefix = `Target: ${raw}`;
+  const noPrefix = raw;
+
+  let text = withPrefix;
+  let px = basePx;
+  if (measure(withPrefix, px) > maxWidth) text = noPrefix;
+
+  let w = measure(text, px);
+  if (w > maxWidth) {
+    const scaled = Math.floor(px * (maxWidth / Math.max(1, w)));
+    px = Math.max(minPx, scaled);
+    w = measure(text, px);
+    while (w > maxWidth && px > minPx) {
+      px -= 1;
+      w = measure(text, px);
+    }
+    tEl.style.fontSize = `${px}px`;
+  }
+
+  tEl.textContent = text;
+}
+
 function applyDonutLabelSizeForLayout() {
   if (!chartObj) return;
   const mob = getMobileAdaptiveProfile();
@@ -2514,6 +2585,7 @@ function parseAndDraw() {
 
     /* Show card before measurements */
     cardEl.style.display = 'block';
+    fitTargetHeading(target);
 
     /* Verdict */
     const verdictType = resolveVerdict(weights, sesPct, zScores, pValue);
@@ -2693,6 +2765,7 @@ window.addEventListener('resize', () => {
     }
     applyTableStylesForCurrentLayout();
     applyResponsiveHeaderStyles();
+    fitTargetHeading();
     applyDonutLabelSizeForLayout();
     applyLayout();
     const vb = document.getElementById('verdictBadge');
