@@ -455,7 +455,22 @@ const MOBILE_VIEW = {
   sourcesNameFontSize:    '35px',                     /* source population name */
   sourcesCoeffFontSize:   '35px',                     /* coeff ± SE line */
   sourcesZFontSize:       '32px',                     /* (Z: ...) */
+  sourcesNameFontWeight:  500,
+  sourcesNameFontStyle:   'normal',
+  sourcesCoeffFontWeight: 500,
+  sourcesCoeffFontStyle:  'normal',
+  sourcesZFontWeight:     700,
+  sourcesZFontStyle:      'normal',
+  equalSourceRowHeights:  true,                       /* mobile: keep source rows equal height */
+  sourcesRowPadTopPx:     10,                         /* mobile row padding top */
+  sourcesRowPadBottomPx:  10,                         /* mobile row padding bottom */
+  rowFitSourceCountStart: 4,                          /* start uniform row shrink from this many sources */
+  rowFitSourceCountMax:   6,                          /* full row shrink at this many sources */
+  rowFitScaleMaxDrop:     0.24,                       /* max uniform row-height compression */
   sourcesOutgroupsGap:    '28px',                     /* vertical gap between sources + outgroups tables */
+  sourcesTableBottomPadPx: 12,                        /* extra bottom breathing room in sources table */
+  sourcesLastRowExtraBottomPadPx: 8,                  /* extra bottom pad only for last source row */
+  sourcesSwatchInsetPx:   2,                          /* vertical inset so swatch never touches row edges */
   verdictFontSize:        'clamp(24px, 3.8vw, 34px)', /* PASS/FAIL badge text */
   verdictPaddingV:        5,                         /* PASS/FAIL badge vertical padding (px) */
   verdictPaddingH:        5,                         /* PASS/FAIL badge horizontal padding (px) */
@@ -467,19 +482,23 @@ const MOBILE_VIEW = {
   donutSizeScale:         0.94,                       /* base mobile donut scale */
   donutShiftYPx:          0,                          /* base mobile donut vertical shift */
   /* Adaptive anti-congestion rule for mobile:
-     phase 1 → shrink donut + tighten donut-adjacent vertical space
-     phase 2 → reduce mobile fonts and row height (without truncating data). */
+     stage 1 → decrease space above/below donut
+     stage 2 → decrease donut size
+     stage 3 → decrease sources table font sizes + row height
+     (without truncating data). */
   adaptiveEnabled:              true,
   adaptiveSourceCountStart:     3,
   adaptiveSourceCountMax:       6,
   adaptiveNameLenStart:         18,
   adaptiveNameLenMax:           34,
-  adaptiveDonutPhaseEnd:        0.65,                 /* first 65% of congestion budget goes to donut/gap */
+  adaptiveStage1SpaceEnd:       0.45,                 /* end of stage 1 (space compression) */
+  adaptiveStage2DonutEnd:       0.80,                 /* end of stage 2 (donut shrink) */
   adaptiveExtraDonutShrinkMax:  0.16,                 /* extra shrink on top of donutSizeScale */
-  adaptiveDonutShiftUpMaxPx:    12,                   /* move donut up while shrinking */
+  adaptiveDonutShiftUpMaxPx:    12,                   /* stage 1: reduce top gap */
+  adaptivePanelTopShiftUpMaxPx: 16,                   /* stage 1: reduce bottom gap (table moves up) */
   adaptiveGapReduceMaxPx:       10,                   /* reduce sources/outgroups gap */
-  adaptiveFontScaleMaxDrop:     0.28,                 /* max font reduction in phase 2 */
-  adaptiveRowPadScaleMaxDrop:   0.40,                 /* max row/header padding reduction in phase 2 */
+  adaptiveFontScaleMaxDrop:     0.28,                 /* max font reduction in stage 3 */
+  adaptiveRowPadScaleMaxDrop:   0.40,                 /* max row/header padding reduction in stage 3 */
 };
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -497,6 +516,12 @@ const SQUARE_VIEW = {
   sourcesNameFontSize:    '22px',                     /* source name */
   sourcesCoeffFontSize:   '22px',                     /* coeff ± SE */
   sourcesZFontSize:       '20px',                     /* Z text */
+  sourcesNameFontWeight:  500,
+  sourcesNameFontStyle:   'normal',
+  sourcesCoeffFontWeight: 500,
+  sourcesCoeffFontStyle:  'normal',
+  sourcesZFontWeight:     700,
+  sourcesZFontStyle:      'normal',
   outgroupsListFontSize:  '20px',                     /* outgroups list text */
   verdictFontSize:        'clamp(16px, 1.9vw, 24px)', /* square PASS/FAIL badge text */
   verdictPaddingV:        6,                          /* square verdict vertical padding */
@@ -797,16 +822,19 @@ function getMobileCongestionFactor() {
 
 function getMobileAdaptiveProfile() {
   const f = getMobileCongestionFactor();
-  const phaseEnd = Math.max(0.05, Math.min(0.95, MOBILE_VIEW.adaptiveDonutPhaseEnd));
-  const donutPhase = Math.min(1, f / phaseEnd);
-  const fontPhase = f <= phaseEnd ? 0 : (f - phaseEnd) / (1 - phaseEnd);
+  const s1End = Math.max(0.05, Math.min(0.9, MOBILE_VIEW.adaptiveStage1SpaceEnd));
+  const s2End = Math.max(s1End + 0.05, Math.min(0.98, MOBILE_VIEW.adaptiveStage2DonutEnd));
+  const stage1 = Math.min(1, f / s1End);
+  const stage2 = f <= s1End ? 0 : Math.min(1, (f - s1End) / (s2End - s1End));
+  const stage3 = f <= s2End ? 0 : Math.min(1, (f - s2End) / (1 - s2End));
   return {
     congestion: f,
-    donutShrink: donutPhase * MOBILE_VIEW.adaptiveExtraDonutShrinkMax,
-    donutShiftUp: donutPhase * MOBILE_VIEW.adaptiveDonutShiftUpMaxPx,
-    gapReduce: donutPhase * MOBILE_VIEW.adaptiveGapReduceMaxPx,
-    fontScale: 1 - (fontPhase * MOBILE_VIEW.adaptiveFontScaleMaxDrop),
-    rowPadScale: 1 - (fontPhase * MOBILE_VIEW.adaptiveRowPadScaleMaxDrop),
+    donutShiftUp: stage1 * MOBILE_VIEW.adaptiveDonutShiftUpMaxPx,
+    panelTopShiftUp: stage1 * MOBILE_VIEW.adaptivePanelTopShiftUpMaxPx,
+    gapReduce: stage1 * MOBILE_VIEW.adaptiveGapReduceMaxPx,
+    donutShrink: stage2 * MOBILE_VIEW.adaptiveExtraDonutShrinkMax,
+    fontScale: 1 - (stage3 * MOBILE_VIEW.adaptiveFontScaleMaxDrop),
+    rowPadScale: 1 - (stage3 * MOBILE_VIEW.adaptiveRowPadScaleMaxDrop),
   };
 }
 
@@ -977,7 +1005,9 @@ function applyLayout() {
   const infoTopBase = ((p.panelTop / 100) * cH);
   const infoTop = isSquareLayout()
     ? infoTopBase - (squareCongestion * SQUARE_VIEW.adaptivePanelTopShiftUpMaxPx)
-    : infoTopBase;
+    : mobile
+      ? infoTopBase - mobileAdaptive.panelTopShiftUp
+      : infoTopBase;
   info.style.top    = infoTop + 'px';
   info.style.right  = ((p.panelRight  / 100) * cW) + 'px';
   info.style.bottom = ((p.panelBottom / 100) * cH) + 'px';
@@ -1319,6 +1349,12 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
     const nameSize  = square ? SQUARE_VIEW.sourcesNameFontSize  : rs.nameFontSize;
     const coeffSize = square ? SQUARE_VIEW.sourcesCoeffFontSize : rs.coeffFontSize;
     const zSize     = square ? SQUARE_VIEW.sourcesZFontSize     : rs.zFontSize;
+    const nameWeight = square ? SQUARE_VIEW.sourcesNameFontWeight : rs.nameFontWeight;
+    const coeffWeight = square ? SQUARE_VIEW.sourcesCoeffFontWeight : rs.coeffFontWeight;
+    const zWeight = square ? SQUARE_VIEW.sourcesZFontWeight : rs.zFontWeight;
+    const nameStyle = square ? SQUARE_VIEW.sourcesNameFontStyle : (rs.nameFontStyle || 'normal');
+    const coeffStyle = square ? SQUARE_VIEW.sourcesCoeffFontStyle : (rs.coeffFontStyle || 'normal');
+    const zStyle = square ? SQUARE_VIEW.sourcesZFontStyle : (rs.zFontStyle || 'normal');
     const z      = zScores[i];
     const zCol   = zColor(z);
     const rowBg  = (i % 2 === 0) ? ts.evenRowBg : ts.oddRowBg;
@@ -1326,10 +1362,10 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
     const isLast = i === sources.length - 1;
     const rowBdr = isLast ? '' : `border-bottom:${ts.rowBorderWidth} solid ${ts.rowBorderColor};`;
 
-    const zHtml   = `<span class="z-text" style="font-family:${rs.zFont};font-size:${zSize};font-weight:${rs.zFontWeight};color:${zCol};white-space:nowrap;vertical-align:baseline;">(${zT.zPrefix}${z.toFixed(2)})</span>`;
+    const zHtml   = `<span class="z-text" style="font-family:${rs.zFont};font-size:${zSize};font-weight:${zWeight};font-style:${zStyle};color:${zCol};white-space:nowrap;vertical-align:baseline;">(${zT.zPrefix}${z.toFixed(2)})</span>`;
     const zSep    = `<span style="display:inline-block;width:${zT.zSepPx}px;"></span>`;
     const colHtml = `<span style="font-family:${sc.colonFont};color:${sc.colonColor};white-space:pre;">${sc.colonText}</span>`;
-    const coHtml  = `<span class="coeff-text" style="font-family:${rs.coeffFont};font-size:${coeffSize};font-weight:${rs.coeffFontWeight};color:${rs.coeffColor};white-space:nowrap;vertical-align:baseline;">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
+    const coHtml  = `<span class="coeff-text" style="font-family:${rs.coeffFont};font-size:${coeffSize};font-weight:${coeffWeight};font-style:${coeffStyle};color:${rs.coeffColor};white-space:nowrap;vertical-align:baseline;">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>`;
     const dataHtml = `${colHtml}${coHtml}${zSep}${zHtml}`;
 
     srcHTML += `<tr style="background:${rowBg};">
@@ -1337,7 +1373,7 @@ function renderSourcesDesktop(sources, weights, sesPct, zScores, colors) {
         <span class="swatch" data-seg-swatch="${i}" style="background:${colors[i]};width:${SWATCH.width};height:${SWATCH.height};border-radius:${SWATCH.radius};border:${SWATCH.border};display:inline-block;"></span>
       </td>
       <td class="col-name" style="text-align:${rs.nameAlign};padding:${cellPadY}px 4px !important;vertical-align:middle;${rowBdr}background:${cellBg};">
-        <span class="pop-name" style="font-family:${rs.nameFont};font-size:${nameSize};font-weight:${rs.nameFontWeight};color:${rs.nameColor};line-height:${rs.nameLineHeight};">${softBreak(pop)}</span>
+        <span class="pop-name" style="font-family:${rs.nameFont};font-size:${nameSize};font-weight:${nameWeight};font-style:${nameStyle};color:${rs.nameColor};line-height:${rs.nameLineHeight};">${softBreak(pop)}</span>
       </td>
       <td class="col-data" style="text-align:${rs.coeffAlign};white-space:nowrap;padding:${cellPadY}px ${cellPadX}px;vertical-align:middle;${rowBdr}background:${cellBg};">${dataHtml}</td>
     </tr>`;
@@ -1371,13 +1407,39 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
   const MOB_NAME_SIZE  = px(MOBILE_VIEW.sourcesNameFontSize, mob.fontScale, 14);
   const MOB_COEFF_SIZE = px(MOBILE_VIEW.sourcesCoeffFontSize, mob.fontScale, 13);
   const MOB_Z_SIZE     = px(MOBILE_VIEW.sourcesZFontSize, mob.fontScale, 12);
+  const MOB_NAME_WEIGHT = MOBILE_VIEW.sourcesNameFontWeight;
+  const MOB_NAME_STYLE  = MOBILE_VIEW.sourcesNameFontStyle;
+  const MOB_COEFF_WEIGHT = MOBILE_VIEW.sourcesCoeffFontWeight;
+  const MOB_COEFF_STYLE  = MOBILE_VIEW.sourcesCoeffFontStyle;
+  const MOB_Z_WEIGHT = MOBILE_VIEW.sourcesZFontWeight;
+  const MOB_Z_STYLE  = MOBILE_VIEW.sourcesZFontStyle;
   const MOB_HDR_SIZE   = px(MOBILE_VIEW.sourcesHeaderFontSize, mob.fontScale, 11);
-  const MOB_CARD_PAD_Y = Math.max(8, Math.round(18 * mob.rowPadScale));
+  const rowFitN0 = MOBILE_VIEW.rowFitSourceCountStart || 4;
+  const rowFitN1 = Math.max(rowFitN0 + 1, MOBILE_VIEW.rowFitSourceCountMax || 6);
+  const rowFitT  = Math.max(0, Math.min(1, (sources.length - rowFitN0) / (rowFitN1 - rowFitN0)));
+  const rowFitScale = 1 - (rowFitT * (MOBILE_VIEW.rowFitScaleMaxDrop || 0.24));
+  const rowScale = Math.max(0.55, mob.rowPadScale * rowFitScale);
+  const MOB_ROW_PAD_TOP = Math.max(4, Math.round((MOBILE_VIEW.sourcesRowPadTopPx || 10) * rowScale));
+  const MOB_ROW_PAD_BOTTOM = Math.max(4, Math.round((MOBILE_VIEW.sourcesRowPadBottomPx || 10) * rowScale));
   const MOB_CARD_PAD_X = Math.max(12, Math.round(20 * mob.rowPadScale));
-  const MOB_CARD_PAD   = `${MOB_CARD_PAD_Y}px ${MOB_CARD_PAD_X}px`;
+  const MOB_LAST_EXTRA_PAD = Math.max(4, Math.round((MOBILE_VIEW.sourcesLastRowExtraBottomPadPx || 8) * mob.rowPadScale));
+  const MOB_SWATCH_INSET = Math.max(1, Math.round((MOBILE_VIEW.sourcesSwatchInsetPx || 2) * rowScale));
+  const MOB_BOTTOM_PAD = MOBILE_VIEW.equalSourceRowHeights
+    ? 0
+    : Math.max(8, Math.round((MOBILE_VIEW.sourcesTableBottomPadPx || 12) * mob.rowPadScale));
   const MOB_BAR_W      = '13px';
+  const ROW_GAP_Y = Math.max(4, Math.round(8 * rowScale));
+  const ROW_GAP_X = Math.max(8, Math.round(16 * rowScale));
+  const META_GAP_X = Math.max(8, Math.round(12 * rowScale));
+  const META_GAP_Y = Math.max(4, Math.round(6 * rowScale));
+  const namePx = parseFloat(MOB_NAME_SIZE) || 22;
+  const coeffPx = parseFloat(MOB_COEFF_SIZE) || 20;
+  const MOB_EQUAL_ROW_MIN_H = Math.max(
+    72,
+    Math.ceil((namePx * 1.25) + (coeffPx * 1.4) + ROW_GAP_Y + MOB_ROW_PAD_TOP + MOB_ROW_PAD_BOTTOM)
+  );
 
-  let html = `<div style="overflow:hidden;border-radius:2px;">`;
+  let html = `<div style="overflow:hidden;border-radius:2px;padding-bottom:${MOB_BOTTOM_PAD}px;">`;
 
   /* Section header */
   html += `<div style="
@@ -1400,13 +1462,14 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
     const zCol   = zColor(z);
     const rowBg  = (i % 2 === 0) ? ts.evenRowBg : ts.oddRowBg;
     const isLast = i === sources.length - 1;
-    const borderBottom = isLast ? '' : `border-bottom:${ts.rowBorderWidth} solid ${ts.rowBorderColor};`;
+    const borderBottom = `border-bottom:${ts.rowBorderWidth} solid ${ts.rowBorderColor};`;
 
     html += `<div style="
         display:flex;
         align-items:stretch;
-        padding:${MOB_CARD_PAD};
-        gap:${Math.max(8, Math.round(16 * mob.rowPadScale))}px;
+        min-height:${MOBILE_VIEW.equalSourceRowHeights ? MOB_EQUAL_ROW_MIN_H : 0}px;
+        padding:${MOB_ROW_PAD_TOP}px ${MOB_CARD_PAD_X}px ${MOB_ROW_PAD_BOTTOM + ((MOBILE_VIEW.equalSourceRowHeights ? 0 : (isLast ? MOB_LAST_EXTRA_PAD : 0)))}px ${MOB_CARD_PAD_X}px;
+        gap:${ROW_GAP_X}px;
         background:${rowBg};
         ${borderBottom}
       ">
@@ -1416,7 +1479,9 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
         min-width:${MOB_BAR_W};
         flex-shrink:0;
         align-self:stretch;
-        min-height:${Math.max(42, Math.round(60 * mob.rowPadScale))}px;
+        margin-top:${MOB_SWATCH_INSET}px;
+        margin-bottom:${MOB_SWATCH_INSET}px;
+        min-height:${MOBILE_VIEW.equalSourceRowHeights ? Math.max(42, MOB_EQUAL_ROW_MIN_H - (2 * MOB_SWATCH_INSET)) : Math.max(42, Math.round(60 * mob.rowPadScale))}px;
         background:${colors[i]};
         border-radius:3px;
         border:1.5px solid rgba(0,0,0,0.2);
@@ -1426,7 +1491,7 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
       <div style="
         display:flex;
         flex-direction:column;
-        gap:${Math.max(4, Math.round(8 * mob.rowPadScale))}px;
+        gap:${ROW_GAP_Y}px;
         flex:1;
         min-width:0;
         justify-content:center;
@@ -1435,7 +1500,8 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
         <div class="pop-name" style="
           font-family:${rs.nameFont};
           font-size:${MOB_NAME_SIZE};
-          font-weight:${rs.nameFontWeight};
+          font-weight:${MOB_NAME_WEIGHT};
+          font-style:${MOB_NAME_STYLE};
           color:${rs.nameColor};
           line-height:1.25;
           word-break:break-word;
@@ -1447,20 +1513,22 @@ function renderSourcesMobile(sources, weights, sesPct, zScores, colors) {
           display:flex;
           flex-wrap:wrap;
           align-items:baseline;
-          gap:${Math.max(4, Math.round(6 * mob.rowPadScale))}px ${Math.max(8, Math.round(12 * mob.rowPadScale))}px;
+          gap:${META_GAP_Y}px ${META_GAP_X}px;
           line-height:1.4;
         ">
           <span class="coeff-text" style="
             font-family:${rs.coeffFont};
             font-size:${MOB_COEFF_SIZE};
-            font-weight:${rs.coeffFontWeight};
+            font-weight:${MOB_COEFF_WEIGHT};
+            font-style:${MOB_COEFF_STYLE};
             color:${rs.coeffColor};
             white-space:nowrap;
           ">${weights[i].toFixed(1)}% \u00B1 ${sesPct[i].toFixed(2)}%</span>
           <span class="z-text" style="
             font-family:${rs.zFont};
             font-size:${MOB_Z_SIZE};
-            font-weight:${rs.zFontWeight};
+            font-weight:${MOB_Z_WEIGHT};
+            font-style:${MOB_Z_STYLE};
             color:${zCol};
             white-space:nowrap;
           ">(${zT.zPrefix}${z.toFixed(2)})</span>
